@@ -2225,11 +2225,11 @@ spec:
 ### FASE 3: Integração WhatsApp com RabbitMQ (Semana 4-5)
 
 #### 3.1 Backend - RabbitMQ Integration
-- [ ] Instalar pacote php-amqplib (composer require php-amqplib/php-amqplib)
-- [ ] Criar RabbitMQService (app/Services/RabbitMQ/RabbitMQService.php)
-- [ ] Implementar método publishToExchange(routingKey, payload)
-- [ ] Configurar Exchange "whatsapp.direct" (tipo: direct)
-- [ ] Configurar conexão RabbitMQ no .env
+- [x] Instalar pacote php-amqplib (composer require php-amqplib/php-amqplib)
+- [x] Criar RabbitMQService (app/Services/RabbitMQ/RabbitMQService.php)
+- [x] Implementar método publishToExchange(routingKey, payload)
+- [x] Configurar Exchange "whatsapp.direct" (tipo: direct)
+- [x] Configurar conexão RabbitMQ no .env
 
 **Exemplo de RabbitMQService.php:**
 ```php
@@ -2284,14 +2284,14 @@ class RabbitMQService
 ```
 
 #### 3.2 Backend - WhatsApp Service (Laravel)
-- [ ] Criar migrations para whatsapp_instances
-- [ ] Criar Model WhatsAppInstance
-- [ ] Implementar WhatsAppService que publica no RabbitMQ
-- [ ] Criar Jobs para enviar mensagens via RabbitMQ:
-  - [ ] SendTextMessageJob (routing key: send.text)
-  - [ ] SendMediaMessageJob (routing key: send.media)
-  - [ ] SendButtonMessageJob (routing key: send.button)
-  - [ ] SendListMessageJob (routing key: send.list)
+- [x] Criar migrations para whatsapp_instances
+- [x] Criar Model WhatsAppInstance
+- [x] Implementar WhatsAppService que publica no RabbitMQ
+- [x] Criar Jobs para enviar mensagens via RabbitMQ:
+  - [x] SendTextMessageJob (routing key: send.text)
+  - [x] SendMediaMessageJob (routing key: send.media)
+  - [x] SendButtonMessageJob (routing key: send.button)
+  - [x] SendListMessageJob (routing key: send.list)
 
 **Exemplo de SendTextMessageJob.php:**
 ```php
