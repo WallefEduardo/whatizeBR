@@ -1,10 +1,9 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
+import Button from '@/Components/UI/Button';
+import Input from '@/Components/UI/Input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/UI/Card';
+import { UserPlus } from 'lucide-react';
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -23,99 +22,105 @@ export default function Register() {
     };
 
     return (
-        <GuestLayout>
-            <Head title="Register" />
+        <>
+            <Head title="Cadastro" />
 
-            <form onSubmit={submit}>
-                <div>
-                    <InputLabel htmlFor="name" value="Name" />
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+                <div className="w-full max-w-md">
+                    {/* Logo/Brand */}
+                    <div className="text-center mb-8">
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-50 mb-2">
+                            WhatsApp Sistema
+                        </h1>
+                        <p className="text-gray-600 dark:text-gray-400">
+                            Crie sua conta gratuitamente
+                        </p>
+                    </div>
 
-                    <TextInput
-                        id="name"
-                        name="name"
-                        value={data.name}
-                        className="mt-1 block w-full"
-                        autoComplete="name"
-                        isFocused={true}
-                        onChange={(e) => setData('name', e.target.value)}
-                        required
-                    />
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Criar conta</CardTitle>
+                            <CardDescription>
+                                Preencha os dados abaixo para criar sua conta
+                            </CardDescription>
+                        </CardHeader>
 
-                    <InputError message={errors.name} className="mt-2" />
+                        <CardContent>
+                            <form onSubmit={submit} className="space-y-4">
+                                <Input
+                                    label="Nome completo"
+                                    type="text"
+                                    value={data.name}
+                                    onChange={(e) => setData('name', e.target.value)}
+                                    error={errors.name}
+                                    placeholder="João Silva"
+                                    autoComplete="name"
+                                    autoFocus
+                                    required
+                                />
+
+                                <Input
+                                    label="Email"
+                                    type="email"
+                                    value={data.email}
+                                    onChange={(e) => setData('email', e.target.value)}
+                                    error={errors.email}
+                                    placeholder="seu@email.com"
+                                    autoComplete="username"
+                                    required
+                                />
+
+                                <Input
+                                    label="Senha"
+                                    type="password"
+                                    value={data.password}
+                                    onChange={(e) => setData('password', e.target.value)}
+                                    error={errors.password}
+                                    placeholder="••••••••"
+                                    autoComplete="new-password"
+                                    required
+                                />
+
+                                <Input
+                                    label="Confirmar senha"
+                                    type="password"
+                                    value={data.password_confirmation}
+                                    onChange={(e) => setData('password_confirmation', e.target.value)}
+                                    error={errors.password_confirmation}
+                                    placeholder="••••••••"
+                                    autoComplete="new-password"
+                                    required
+                                />
+
+                                <Button
+                                    type="submit"
+                                    variant="primary"
+                                    size="lg"
+                                    isLoading={processing}
+                                    className="w-full"
+                                >
+                                    <UserPlus className="w-4 h-4 mr-2" />
+                                    Criar conta
+                                </Button>
+                            </form>
+
+                            <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+                                Já tem uma conta?{' '}
+                                <Link
+                                    href={route('login')}
+                                    className="font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+                                >
+                                    Fazer login
+                                </Link>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <p className="mt-8 text-center text-xs text-gray-500 dark:text-gray-400">
+                        &copy; {new Date().getFullYear()} WhatsApp Sistema. Todos os direitos reservados.
+                    </p>
                 </div>
-
-                <div className="mt-4">
-                    <InputLabel htmlFor="email" value="Email" />
-
-                    <TextInput
-                        id="email"
-                        type="email"
-                        name="email"
-                        value={data.email}
-                        className="mt-1 block w-full"
-                        autoComplete="username"
-                        onChange={(e) => setData('email', e.target.value)}
-                        required
-                    />
-
-                    <InputError message={errors.email} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <TextInput
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        onChange={(e) => setData('password', e.target.value)}
-                        required
-                    />
-
-                    <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel
-                        htmlFor="password_confirmation"
-                        value="Confirm Password"
-                    />
-
-                    <TextInput
-                        id="password_confirmation"
-                        type="password"
-                        name="password_confirmation"
-                        value={data.password_confirmation}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        onChange={(e) =>
-                            setData('password_confirmation', e.target.value)
-                        }
-                        required
-                    />
-
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2"
-                    />
-                </div>
-
-                <div className="mt-4 flex items-center justify-end">
-                    <Link
-                        href={route('login')}
-                        className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    >
-                        Already registered?
-                    </Link>
-
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Register
-                    </PrimaryButton>
-                </div>
-            </form>
-        </GuestLayout>
+            </div>
+        </>
     );
 }

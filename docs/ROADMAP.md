@@ -2150,75 +2150,75 @@ spec:
 #### 1.1 Configuração Base
 - [x] Instalar Laravel 11 com configuração inicial
 - [x] Configurar Inertia.js + React + TypeScript + Vite
-- [ ] Setup TailwindCSS com configuração de tema (light/dark)
-- [ ] Configurar ESLint + Prettier
-- [ ] Configurar Git + Gitflow
-- [ ] Criar estrutura de pastas completa
+- [x] Setup TailwindCSS com configuração de tema (light/dark)
+- [x] Configurar ESLint + Prettier
+- [x] Configurar Git + Gitflow
+- [x] Criar estrutura de pastas completa
 
 #### 1.2 Docker & Infraestrutura
-- [ ] Criar Dockerfile para PHP/Laravel
-- [ ] Configurar docker-compose.yml (Laravel + PostgreSQL + Redis + RabbitMQ)
-- [ ] Setup PostgreSQL + Redis
-- [ ] Setup RabbitMQ para filas
-- [ ] Setup MinIO para storage de mídias (depois com a API Go)
-- [ ] Configurar Nginx reverse proxy
+- [x] Criar Dockerfile para PHP/Laravel
+- [x] Configurar docker-compose.yml (Laravel + PostgreSQL + Redis + RabbitMQ)
+- [x] Setup PostgreSQL + Redis
+- [x] Setup RabbitMQ para filas
+- [x] Setup MinIO para storage de mídias (depois com a API Go)
+- [x] Configurar Nginx reverse proxy
 
 #### 1.3 Design System Base
-- [ ] Instalar Lucide React
-- [ ] Instalar e configurar Inter Variable font
-- [ ] Criar arquivo de configuração de cores (Tailwind)
-- [ ] Implementar ThemeProvider (Context API)
-- [ ] **Criar arquivo COMPONENTS.md** na raiz do projeto (lista limpa de componentes)
-- [ ] Criar componentes UI base:
-  - [ ] Button (border-radius: 4px, variantes: primary, secondary, ghost, danger)
-  - [ ] Input
-  - [ ] Select
-  - [ ] Modal (border-radius: 6px)
-  - [ ] **ConfirmDialog** (substituir alert/confirm nativos)
-  - [ ] Card (border-radius: 4px)
-  - [ ] Badge (border-radius: 3px)
-  - [ ] Avatar (circular)
-  - [ ] Dropdown
-  - [ ] Tooltip
-  - [ ] Toast
-  - [ ] Switch
-  - [ ] Checkbox
-  - [ ] Radio
-  - [ ] Textarea
-  - [ ] DatePicker
-  - [ ] FileUpload
-- [ ] Criar Table components:
-  - [ ] Table (genérico e reutilizável)
-  - [ ] TableActions (ícones em CINZA #737373)
-  - [ ] Pagination
-- [ ] **Criar componentes especializados avançados:**
-  - [ ] **CurrencyInput** (calculadora: 1→R$0,01, 12→R$0,12, trabalha com centavos)
-  - [ ] **DateTimePicker** (data + hora, bonito e customizado)
-  - [ ] **SearchableSelect** (dropdown com busca em cima)
-  - [ ] **MultiSelect** (seleção múltipla com busca e badges)
-  - [ ] **Breadcrumbs** (navegação com ícones)
-- [ ] Criar Hook useConfirm para facilitar uso de ConfirmDialog
-- [ ] **Atualizar COMPONENTS.md** com todos os componentes criados
-- [ ] **Criar arquivo COMPONENTES_ESPECIALIZADOS.md** com código completo
+- [x] Instalar Lucide React
+- [x] Instalar e configurar Inter Variable font
+- [x] Criar arquivo de configuração de cores (Tailwind)
+- [x] Implementar ThemeProvider (Context API)
+- [x] **Criar arquivo COMPONENTS.md** na raiz do projeto (lista limpa de componentes)
+- [x] Criar componentes UI base:
+  - [x] Button (border-radius: 4px, variantes: primary, secondary, ghost, danger)
+  - [x] Input
+  - [x] Select
+  - [x] Modal (border-radius: 6px)
+  - [x] **ConfirmDialog** (substituir alert/confirm nativos)
+  - [x] Card (border-radius: 4px)
+  - [x] Badge (border-radius: 3px)
+  - [x] Avatar (circular)
+  - [x] Dropdown
+  - [x] Tooltip
+  - [x] Toast
+  - [x] Switch
+  - [x] Checkbox
+  - [x] Radio
+  - [x] Textarea
+  - [x] DatePicker
+  - [x] FileUpload
+- [x] Criar Table components:
+  - [x] Table (genérico e reutilizável)
+  - [x] TableActions (ícones em CINZA #737373)
+  - [x] Pagination
+- [x] **Criar componentes especializados avançados:**
+  - [x] **CurrencyInput** (calculadora: 1→R$0,01, 12→R$0,12, trabalha com centavos)
+  - [x] **DateTimePicker** (data + hora, bonito e customizado)
+  - [x] **SearchableSelect** (dropdown com busca em cima)
+  - [x] **MultiSelect** (seleção múltipla com busca e badges)
+  - [x] **Breadcrumbs** (navegação com ícones)
+- [x] Criar Hook useConfirm para facilitar uso de ConfirmDialog
+- [x] **Atualizar COMPONENTS.md** com todos os componentes criados
+- [x] **Criar arquivo COMPONENTES_ESPECIALIZADOS.md** com código completo
 
 ---
 
 ### FASE 2: Autenticação e Layout (Semana 3)
 
 #### 2.1 Sistema de Autenticação
-- [ ] Criar migrations de users
-- [ ] Implementar Login/Register com Laravel Breeze
-- [ ] Criar páginas de autenticação (React)
-- [ ] Implementar multi-tenancy (por instância)
-- [ ] Sistema de roles (admin, supervisor, agent)
+- [x] Criar migrations de users
+- [x] Implementar Login/Register com Laravel Breeze
+- [x] Criar páginas de autenticação (React)
+- [x] Implementar multi-tenancy (por instância)
+- [x] Sistema de roles (admin, supervisor, agent)
 
 #### 2.2 Layout Principal
-- [ ] Criar AppLayout com Sidebar + Navbar
-- [ ] Implementar Sidebar responsivo
-- [ ] Criar Navbar com search, notificações, user menu
-- [ ] Implementar Breadcrumbs dinâmico
-- [ ] Criar Toggle de tema (light/dark)
-- [ ] Menu mobile (hamburger)
+- [x] Criar AppLayout com Sidebar + Navbar
+- [x] Implementar Sidebar responsivo
+- [x] Criar Navbar com search, notificações, user menu
+- [x] Implementar Breadcrumbs dinâmico
+- [x] Criar Toggle de tema (light/dark)
+- [x] Menu mobile (hamburger)
 
 ---
 
