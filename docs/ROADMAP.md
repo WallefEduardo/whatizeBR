@@ -2382,12 +2382,12 @@ class ConsumeWebhooksCommand extends Command
 ```
 
 #### 3.4 Backend - HTTP Endpoints (para Connection Service)
-- [ ] Criar endpoints REST para comunicação com Connection Service (Go):
-  - [ ] POST /api/whatsapp/instances - criar instância
-  - [ ] GET /api/whatsapp/instances/{token}/qr - obter QR Code
-  - [ ] GET /api/whatsapp/instances/{token}/status - obter status
-  - [ ] DELETE /api/whatsapp/instances/{token} - desconectar/deletar
-- [ ] Implementar rate limiting por contato
+- [x] Criar endpoints REST para comunicação com Connection Service (Go):
+  - [x] POST /api/whatsapp/instances - criar instância
+  - [x] GET /api/whatsapp/instances/{token}/qr - obter QR Code
+  - [x] GET /api/whatsapp/instances/{token}/status - obter status
+  - [x] DELETE /api/whatsapp/instances/{token} - desconectar/deletar
+- [x] Implementar rate limiting por contato
 
 #### 3.3 Frontend - Conexão WhatsApp
 - [ ] Página de listagem de instâncias
