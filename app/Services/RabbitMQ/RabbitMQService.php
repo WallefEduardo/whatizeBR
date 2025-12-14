@@ -195,6 +195,16 @@ class RabbitMQService
     }
 
     /**
+     * Get the RabbitMQ channel
+     *
+     * @return \PhpAmqpLib\Channel\AMQPChannel
+     */
+    public function getChannel()
+    {
+        return $this->channel;
+    }
+
+    /**
      * Close the connection and channel
      *
      * @return void

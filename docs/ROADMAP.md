@@ -2329,16 +2329,16 @@ class SendTextMessageJob implements ShouldQueue
 ```
 
 #### 3.3 Backend - Webhook Consumer (Laravel)
-- [ ] Criar Command para consumir fila webhook (php artisan rabbitmq:consume-webhooks)
-- [ ] Criar WhatsAppWebhookHandler
-- [ ] Implementar verificação HMAC signature
-- [ ] Criar Events para cada tipo de webhook:
-  - [ ] MessageReceived
-  - [ ] MessageSent
-  - [ ] MessageRead
-  - [ ] TypingIndicator
-  - [ ] PresenceUpdate
-- [ ] Criar Listeners para broadcast via WebSocket
+- [x] Criar Command para consumir fila webhook (php artisan rabbitmq:consume-webhooks)
+- [x] Criar WhatsAppWebhookHandler
+- [x] Implementar verificação HMAC signature
+- [x] Criar Events para cada tipo de webhook:
+  - [x] MessageReceived
+  - [x] MessageSent
+  - [x] MessageRead
+  - [x] TypingIndicator
+  - [x] PresenceUpdate
+- [x]Criar Listeners para broadcast via WebSocket
 
 **Exemplo de ConsumeWebhooksCommand.php:**
 ```php
