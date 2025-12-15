@@ -15,7 +15,9 @@
       "Bash(npx tsc:*)",
       "Bash(find:*)",
       "Bash(set DB_HOST=)",
-      "Bash(php -r:*)"
+      "Bash(php -r:*)",
+      "Bash(php -m:*)",
+      "Bash(npx vite build:*)"
     ]
   }
 }

@@ -2435,21 +2435,21 @@ class ConsumeWebhooksCommand extends Command
 - [x] Integração com custom fields
 
 #### 4.5 Frontend - Chat ao Vivo
-- [ ] Layout split: Lista de conversas + Janela de chat
-- [ ] ConversationItem component (preview da conversa)
-- [ ] ChatWindow component
-- [ ] MessageBubble component (suporte a todos os tipos)
-- [ ] MessageInput com:
-  - [ ] Input de texto
-  - [ ] Botão de emoji picker
-  - [ ] Botão de anexo (menu)
-  - [ ] Botão de áudio
-  - [ ] Quick replies
-- [ ] Indicador de digitação (typing)
-- [ ] Status de leitura (checkmarks)
-- [ ] Upload de arquivos (drag & drop)
-- [ ] Preview de mídias
-- [ ] Reply/Quote mensagem
+- [x] Layout split: Lista de conversas + Janela de chat
+- [x] ConversationItem component (preview da conversa)
+- [x] ChatWindow component
+- [x] MessageBubble component (suporte a todos os tipos)
+- [x] MessageInput com:
+  - [x] Input de texto
+  - [x] Botão de emoji picker
+  - [x] Botão de anexo (menu)
+  - [x] Botão de áudio
+  - [x] Quick replies
+- [x] Indicador de digitação (typing)
+- [x] Status de leitura (checkmarks)
+- [x] Upload de arquivos (drag & drop)
+- [x] Preview de mídias
+- [x] Reply/Quote mensagem
 
 ---
 

@@ -34,6 +34,7 @@
     },
     "dependencies": {
         "clsx": "^2.1.1",
+        "emoji-picker-react": "^4.16.1",
         "lucide-react": "^0.561.0",
         "tailwind-merge": "^3.4.0"
     }
