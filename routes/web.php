@@ -48,6 +48,38 @@ Route::middleware('auth')->group(function () {
     Route::delete('/conversations/{id}/tags/{tagId}', [\App\Http\Controllers\ConversationController::class, 'removeTag'])->name('conversations.tags.remove');
     Route::post('/conversations/{id}/mark-read', [\App\Http\Controllers\ConversationController::class, 'markAsRead'])->name('conversations.mark-read');
     Route::post('/conversations/bulk-update', [\App\Http\Controllers\ConversationController::class, 'bulkUpdate'])->name('conversations.bulk-update');
+
+    // Departments
+    Route::resource('departments', \App\Http\Controllers\DepartmentController::class);
+    Route::post('/departments/{department}/toggle', [\App\Http\Controllers\DepartmentController::class, 'toggle'])->name('departments.toggle');
+
+    // Tags
+    Route::resource('tags', \App\Http\Controllers\TagController::class);
+
+    // Members
+    Route::resource('members', \App\Http\Controllers\MemberController::class);
+    Route::post('/members/{member}/toggle', [\App\Http\Controllers\MemberController::class, 'toggle'])->name('members.toggle');
+    Route::get('/members/{member}/stats', [\App\Http\Controllers\MemberController::class, 'stats'])->name('members.stats');
+
+    // Schedules
+    Route::resource('schedules', \App\Http\Controllers\ScheduleController::class);
+    Route::post('/schedules/{schedule}/cancel', [\App\Http\Controllers\ScheduleController::class, 'cancel'])->name('schedules.cancel');
+
+    // Broadcasts
+    Route::resource('broadcasts', \App\Http\Controllers\BroadcastController::class);
+    Route::post('/broadcasts/{broadcast}/send', [\App\Http\Controllers\BroadcastController::class, 'send'])->name('broadcasts.send');
+    Route::post('/broadcasts/{broadcast}/cancel', [\App\Http\Controllers\BroadcastController::class, 'cancel'])->name('broadcasts.cancel');
+    Route::post('/broadcasts/preview', [\App\Http\Controllers\BroadcastController::class, 'preview'])->name('broadcasts.preview');
+
+    // Chatbots
+    Route::resource('chatbots', \App\Http\Controllers\ChatbotController::class);
+    Route::post('/chatbots/{chatbot}/toggle', [\App\Http\Controllers\ChatbotController::class, 'toggle'])->name('chatbots.toggle');
+
+    // WebSocket Test Routes (Development Only)
+    if (config('app.debug')) {
+        Route::get('/test/websocket/message', [\App\Http\Controllers\TestWebSocketController::class, 'testMessage'])->name('test.websocket.message');
+        Route::get('/test/websocket/typing', [\App\Http\Controllers\TestWebSocketController::class, 'testTyping'])->name('test.websocket.typing');
+    }
 });
 
 require __DIR__.'/auth.php';

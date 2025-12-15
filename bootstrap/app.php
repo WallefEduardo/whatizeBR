@@ -29,6 +29,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'whatsapp.ratelimit' => \App\Http\Middleware\WhatsAppRateLimitMiddleware::class,
         ]);
     })
+    ->withSchedule(function ($schedule) {
+        // Process due schedules every minute
+        $schedule->command('schedules:process')->everyMinute();
+    })
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();

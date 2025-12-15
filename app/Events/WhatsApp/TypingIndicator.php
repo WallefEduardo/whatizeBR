@@ -2,8 +2,8 @@
 
 namespace App\Events\WhatsApp;
 
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -12,20 +12,23 @@ class TypingIndicator implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public array $payload;
+    public string $conversationId;
+    public string $contactName;
+    public bool $isTyping;
 
-    public function __construct(array $payload)
+    public function __construct(string $conversationId, string $contactName, bool $isTyping = true)
     {
-        $this->payload = $payload;
+        $this->conversationId = $conversationId;
+        $this->contactName = $contactName;
+        $this->isTyping = $isTyping;
     }
 
     /**
      * Get the channels the event should broadcast on.
      */
-    public function broadcastOn(): Channel
+    public function broadcastOn(): PrivateChannel
     {
-        $instanceId = $this->payload['instance_id'] ?? 'default';
-        return new Channel("whatsapp.{$instanceId}");
+        return new PrivateChannel('conversation.' . $this->conversationId);
     }
 
     /**
@@ -34,8 +37,16 @@ class TypingIndicator implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
-            'type' => 'typing_indicator',
-            'data' => $this->payload,
+            'contact_name' => $this->contactName,
+            'is_typing' => $this->isTyping,
         ];
+    }
+
+    /**
+     * The event's broadcast name.
+     */
+    public function broadcastAs(): string
+    {
+        return 'typing.indicator';
     }
 }

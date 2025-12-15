@@ -17,7 +17,9 @@
       "Bash(set DB_HOST=)",
       "Bash(php -r:*)",
       "Bash(php -m:*)",
-      "Bash(npx vite build:*)"
+      "Bash(npx vite build:*)",
+      "Bash(grep:*)",
+      "Bash(php artisan config:publish:*)"
     ]
   }
 }

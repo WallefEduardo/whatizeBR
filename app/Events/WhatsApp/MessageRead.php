@@ -2,8 +2,8 @@
 
 namespace App\Events\WhatsApp;
 
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -12,20 +12,21 @@ class MessageRead implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public array $payload;
+    public string $conversationId;
+    public string $messageId;
 
-    public function __construct(array $payload)
+    public function __construct(string $conversationId, string $messageId)
     {
-        $this->payload = $payload;
+        $this->conversationId = $conversationId;
+        $this->messageId = $messageId;
     }
 
     /**
      * Get the channels the event should broadcast on.
      */
-    public function broadcastOn(): Channel
+    public function broadcastOn(): PrivateChannel
     {
-        $instanceId = $this->payload['instance_id'] ?? 'default';
-        return new Channel("whatsapp.{$instanceId}");
+        return new PrivateChannel('conversation.' . $this->conversationId);
     }
 
     /**
@@ -34,8 +35,15 @@ class MessageRead implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
-            'type' => 'message_read',
-            'data' => $this->payload,
+            'message_id' => $this->messageId,
         ];
+    }
+
+    /**
+     * The event's broadcast name.
+     */
+    public function broadcastAs(): string
+    {
+        return 'message.read';
     }
 }

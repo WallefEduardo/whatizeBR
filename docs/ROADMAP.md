@@ -2453,24 +2453,38 @@ class ConsumeWebhooksCommand extends Command
 
 ---
 
-### FASE 5: WebSockets e Tempo Real (Semana 8)
+### FASE 5: WebSockets e Tempo Real (Semana 8) ✅
 
-#### 5.1 Laravel Echo + Pusher
-- [ ] Configurar Laravel Broadcasting
-- [ ] Configurar Pusher ou Soketi (self-hosted)
-- [ ] Criar Private Channels para conversas
-- [ ] Broadcast de eventos:
-  - [ ] MessageReceived
-  - [ ] MessageSent
-  - [ ] MessageRead
-  - [ ] TypingIndicator
-  - [ ] ConversationAssigned
+#### 5.1 Laravel Echo + Pusher/Soketi
+- [x] Configurar Laravel Broadcasting
+- [x] Configurar Soketi (self-hosted, gratuito)
+- [x] Adicionar Soketi ao docker-compose.yml
+- [x] Configurar .env com credenciais do Soketi
+- [x] Instalar pusher-php-server (backend)
+- [x] Instalar laravel-echo + pusher-js (frontend)
+- [x] Criar Private Channels para conversas (ConversationChannel)
+- [x] Registrar channels em routes/channels.php
+- [x] Broadcast de eventos:
+  - [x] MessageReceived
+  - [x] MessageSent
+  - [x] MessageRead
+  - [x] TypingIndicator
+  - [ ] ConversationAssigned (opcional)
 
 #### 5.2 Frontend - WebSocket Client
-- [ ] Criar useWebSocket hook
-- [ ] Conectar ao Laravel Echo
-- [ ] Listen em eventos de mensagem
-- [ ] Atualizar UI em tempo real
+- [x] Configurar Laravel Echo no bootstrap.ts
+- [x] Adicionar types TypeScript para Echo/Pusher
+- [x] Criar useWebSocket hook
+- [x] Conectar ao Laravel Echo
+- [x] Listen em eventos de mensagem
+- [x] Criar guia de integração (docs/WEBSOCKET_INTEGRATION_GUIDE.md)
+- [x] Atualizar UI em tempo real (implementar no Chat/Index.tsx)
+  - [x] Estado local de mensagens (localMessages)
+  - [x] Recebimento de mensagens ao vivo
+  - [x] Atualização de status (read/delivered/sent)
+  - [x] Typing indicator (contato digitando...)
+  - [x] Auto-scroll para novas mensagens
+  - [x] Envio de typing indicator ao digitar
 - [ ] Notificações de áudio para novas mensagens
 - [ ] Desktop notifications (se permitido)
 
@@ -2479,71 +2493,71 @@ class ConsumeWebhooksCommand extends Command
 ### FASE 6: Departamentos, Tags e Membros (Semana 9)
 
 #### 6.1 Backend - Departamentos
-- [ ] Criar migrations para departments
-- [ ] Model Department
-- [ ] DepartmentController (CRUD)
-- [ ] Relacionamento com conversas
+- [x] Criar migrations para departments
+- [x] Model Department
+- [x] DepartmentController (CRUD)
+- [x] Relacionamento com conversas
 
 #### 6.2 Backend - Tags
-- [ ] Criar migrations para tags
-- [ ] Model Tag
-- [ ] TagController (CRUD)
-- [ ] Pivot table conversation_tags
+- [x] Criar migrations para tags
+- [x] Model Tag
+- [x] TagController (CRUD)
+- [x] Pivot table conversation_tags
 
 #### 6.3 Backend - Membros/Atendentes
-- [ ] Criar migrations para members
-- [ ] Model Member
-- [ ] MemberController
-- [ ] Lógica de distribuição automática de conversas
-- [ ] Max concurrent chats por atendente
+- [x] Criar migrations para members
+- [x] Model Member
+- [x] MemberController
+- [x] Lógica de distribuição automática de conversas
+- [x] Max concurrent chats por atendente
 
 #### 6.4 Frontend - CRUD
-- [ ] Página de Departamentos (lista + modal create/edit)
-- [ ] Página de Tags (lista + modal create/edit)
-- [ ] Página de Membros (lista + modal create/edit)
-- [ ] Color picker para tags e departamentos
-- [ ] Formulários de atribuição
+- [x] Página de Departamentos (lista + modal create/edit)
+- [x] Página de Tags (lista + modal create/edit)
+- [x] Página de Membros (lista + modal create/edit)
+- [x] Color picker para tags e departamentos
+- [x] Formulários de atribuição
 
 ---
 
 ### FASE 7: Agendamentos (Semana 10)
 
 #### 7.1 Backend
-- [ ] Criar migrations para schedules
-- [ ] Model Schedule
-- [ ] ScheduleController
-- [ ] Job ProcessScheduledMessages
-- [ ] Command no scheduler do Laravel
-- [ ] Suporte a recorrência (daily, weekly, monthly, once)
+- [x] Criar migrations para schedules
+- [x] Model Schedule
+- [x] ScheduleController
+- [x] Job ProcessScheduledMessages
+- [x] Command no scheduler do Laravel
+- [x] Suporte a recorrência (daily, weekly, monthly, once)
 
 #### 7.2 Frontend
-- [ ] Página de listagem de agendamentos
-- [ ] Modal de criação de agendamento
-- [ ] Seletor de data/hora
-- [ ] Seletor de recorrência
-- [ ] Preview de mensagem
-- [ ] Status de envio (progresso)
+- [x] Página de listagem de agendamentos
+- [x] Modal de criação de agendamento
+- [x] Seletor de data/hora
+- [x] Seletor de recorrência
+- [x] Preview de mensagem
+- [x] Status de envio (progresso)
 
 ---
 
 ### FASE 8: Transmissão/Broadcast (Semana 11)
 
 #### 8.1 Backend
-- [ ] Criar migrations para broadcasts
-- [ ] Model Broadcast
-- [ ] BroadcastController
-- [ ] BroadcastService (lógica de filtros)
-- [ ] Job SendBroadcastMessage
-- [ ] Respeitar rate limits (1 msg/6s por contato)
-- [ ] Tracking de envios/leituras
+- [x] Criar migrations para broadcasts
+- [x] Model Broadcast
+- [x] BroadcastController
+- [x] BroadcastService (lógica de filtros)
+- [x] Job SendBroadcastMessage
+- [x] Respeitar rate limits (1 msg/6s por contato)
+- [x] Tracking de envios/leituras
 
 #### 8.2 Frontend
-- [ ] Página de listagem de broadcasts
-- [ ] Modal de criação de broadcast
-- [ ] Seletor de filtros (tags, departamento, etc)
-- [ ] Preview de destinatários
-- [ ] Estatísticas de envio
-- [ ] Gráfico de progressão
+- [x] Página de listagem de broadcasts
+- [x] Modal de criação de broadcast
+- [x] Seletor de filtros (tags, departamento, etc)
+- [x] Preview de destinatários
+- [x] Estatísticas de envio
+- [x] Gráfico de progressão
 
 ---
 

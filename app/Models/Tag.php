@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,10 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Tag extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
     protected $fillable = [
-        'user_id',
+        'instance_id',
         'name',
         'color',
     ];
@@ -24,11 +23,20 @@ class Tag extends Model
     ];
 
     /**
-     * Get the user that owns this tag
+     * Get the instance that owns this tag
      */
-    public function user(): BelongsTo
+    public function instance(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Instance::class);
+    }
+
+    /**
+     * Get all conversations associated with this tag
+     */
+    public function conversations(): BelongsToMany
+    {
+        return $this->belongsToMany(Conversation::class, 'conversation_tag')
+            ->withTimestamps();
     }
 
     /**
@@ -41,10 +49,10 @@ class Tag extends Model
     }
 
     /**
-     * Scope a query to filter by user
+     * Scope a query to filter by instance
      */
-    public function scopeForUser($query, string $userId)
+    public function scopeForInstance($query, int $instanceId)
     {
-        return $query->where('user_id', $userId);
+        return $query->where('instance_id', $instanceId);
     }
 }

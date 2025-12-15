@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { router } from '@inertiajs/react'
 import { Search, Phone, MoreVertical, Paperclip, Smile, Mic, Send, X, User, Tag as TagIcon, FileText, Clock } from 'lucide-react'
 import AppLayout from '@/Layouts/AppLayout'
 import Badge from '@/Components/UI/Badge'
+import { useWebSocket } from '@/Hooks/useWebSocket'
 
 interface Tag {
     id: string
@@ -67,6 +68,47 @@ export default function ChatIndex({ conversations, selectedConversation, message
     const [messageText, setMessageText] = useState('')
     const [statusFilter, setStatusFilter] = useState<'open' | 'pending' | 'closed'>('open')
     const [showContactPanel, setShowContactPanel] = useState(true)
+    const [localMessages, setLocalMessages] = useState<Message[]>(messages)
+    const [typingContact, setTypingContact] = useState<string | null>(null)
+    const messagesEndRef = useRef<HTMLDivElement>(null)
+
+    // Update local messages when props change (conversation switch)
+    useEffect(() => {
+        setLocalMessages(messages)
+    }, [messages])
+
+    // Auto-scroll to bottom when new messages arrive
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }, [localMessages])
+
+    // WebSocket integration
+    const { sendTypingIndicator } = useWebSocket({
+        conversationId: selectedConversation?.id || '',
+        onMessageReceived: (message) => {
+            setLocalMessages(prev => [...prev, message])
+        },
+        onMessageSent: (message) => {
+            setLocalMessages(prev => {
+                const existing = prev.find(m => m.id === message.id)
+                if (existing) {
+                    return prev.map(m => m.id === message.id ? message : m)
+                }
+                return [...prev, message]
+            })
+        },
+        onMessageRead: (messageId) => {
+            setLocalMessages(prev =>
+                prev.map(m => m.id === messageId ? { ...m, status: 'read' as const } : m)
+            )
+        },
+        onTypingIndicator: (contactName, isTyping) => {
+            setTypingContact(isTyping ? contactName : null)
+            if (isTyping) {
+                setTimeout(() => setTypingContact(null), 3000)
+            }
+        },
+    })
 
     const getInitials = (name: string | null, phone: string) => {
         const text = name || phone
@@ -352,9 +394,23 @@ export default function ChatIndex({ conversations, selectedConversation, message
                                 </div>
                             </div>
 
+                            {/* Typing Indicator */}
+                            {typingContact && (
+                                <div className="px-4 py-2 bg-dark-100 dark:bg-dark-700/50 border-b border-dark-200 dark:border-dark-700">
+                                    <p className="text-xs text-dark-600 dark:text-dark-400">
+                                        <span className="font-medium">{typingContact}</span> está digitando
+                                        <span className="inline-flex ml-1">
+                                            <span className="animate-pulse">.</span>
+                                            <span className="animate-pulse animation-delay-200">.</span>
+                                            <span className="animate-pulse animation-delay-400">.</span>
+                                        </span>
+                                    </p>
+                                </div>
+                            )}
+
                             {/* Área de Mensagens */}
                             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                                {messages.length === 0 ? (
+                                {localMessages.length === 0 ? (
                                     <div className="flex items-center justify-center h-full">
                                         <div className="text-center">
                                             <div className="w-20 h-20 rounded-full bg-dark-100 dark:bg-dark-700 flex items-center justify-center mx-auto mb-4">
@@ -366,7 +422,8 @@ export default function ChatIndex({ conversations, selectedConversation, message
                                         </div>
                                     </div>
                                 ) : (
-                                    messages.map((message) => (
+                                    <>
+                                        {localMessages.map((message) => (
                                         <div
                                             key={message.id}
                                             className={`flex ${message.direction === 'outbound' ? 'justify-end' : 'justify-start'}`}
@@ -413,7 +470,9 @@ export default function ChatIndex({ conversations, selectedConversation, message
                                                 </div>
                                             </div>
                                         </div>
-                                    ))
+                                        ))}
+                                        <div ref={messagesEndRef} />
+                                    </>
                                 )}
                             </div>
 
@@ -429,7 +488,12 @@ export default function ChatIndex({ conversations, selectedConversation, message
 
                                     <textarea
                                         value={messageText}
-                                        onChange={(e) => setMessageText(e.target.value)}
+                                        onChange={(e) => {
+                                            setMessageText(e.target.value)
+                                            if (e.target.value.trim() && selectedConversation) {
+                                                sendTypingIndicator(true)
+                                            }
+                                        }}
                                         onKeyPress={handleKeyPress}
                                         placeholder="Digite uma mensagem..."
                                         rows={1}

@@ -284,10 +284,189 @@ Variante rápida: `useQuickConfirm()` com `confirmDelete()` e `confirmAction()`.
 
 ---
 
+## Chat Components (Seção 4.5 - Chat ao Vivo) ✅
+
+### EmojiPicker
+**Localização**: `resources/js/Components/Chat/EmojiPicker.tsx`
+
+Seletor de emojis integrado com emoji-picker-react.
+
+Props: `isOpen`, `onClose`, `onEmojiSelect`
+
+---
+
+### AttachmentMenu
+**Localização**: `resources/js/Components/Chat/AttachmentMenu.tsx`
+
+Menu de anexos com suporte para:
+- Imagem (JPG, PNG, GIF)
+- Vídeo (MP4, AVI, MOV)
+- Documento (PDF, DOC, XLS)
+- Localização
+- Contato
+
+Props: `isOpen`, `onClose`, `onFileSelect`, `onLocationSelect`, `onContactSelect`
+
+---
+
+### AudioRecorder
+**Localização**: `resources/js/Components/Chat/AudioRecorder.tsx`
+
+Gravador de áudio com WebAudio API, timer e controles de gravação.
+
+Props: `onAudioRecorded`, `onCancel`
+
+---
+
+### QuickReplies
+**Localização**: `resources/js/Components/Chat/QuickReplies.tsx`
+
+Respostas rápidas com busca e atalhos (/comando).
+
+Props: `isOpen`, `onClose`, `onSelect`, `quickReplies`
+
+---
+
+### TypingIndicator
+**Localização**: `resources/js/Components/Chat/TypingIndicator.tsx`
+
+Indicador de digitação animado (3 dots).
+
+Props: `contactName`
+
+---
+
+### ReplyPreview
+**Localização**: `resources/js/Components/Chat/ReplyPreview.tsx`
+
+Preview da mensagem sendo respondida com botão de cancelar.
+
+Props: `message`, `onCancel`
+
+---
+
+### MediaPreview
+**Localização**: `resources/js/Components/Chat/MediaPreview.tsx`
+
+Preview de mídia antes de enviar, com campo de legenda opcional.
+
+Suporta: `image`, `video`, `document`
+
+Props: `file`, `type`, `onSend`, `onCancel`
+
+---
+
+### MessageBubble
+**Localização**: `resources/js/Components/Chat/MessageBubble.tsx`
+
+Bolha de mensagem completa com suporte a TODOS os tipos:
+- ✅ **text** - Mensagem de texto
+- ✅ **image** - Imagem com legenda opcional
+- ✅ **video** - Vídeo com player e legenda
+- ✅ **audio** - Player de áudio
+- ✅ **document** - Documento com download
+- ✅ **location** - Localização com mapa (Mapbox)
+- ✅ **contact** - Cartão de contato
+- ✅ **button** - Mensagem com botões interativos
+- ✅ **list** - Mensagem com lista de opções
+- ✅ **sticker** - Figurinha
+- ✅ **reaction** - Reação a mensagem
+
+Props: `message`, `onReply`, `formatTime`, `getStatusCheckmarks`
+
+---
+
+### MessageInput
+**Localização**: `resources/js/Components/Chat/MessageInput.tsx`
+
+Input de mensagem COMPLETO integrado com todos os componentes:
+- ✅ Emoji picker
+- ✅ Menu de anexos (imagem, vídeo, documento)
+- ✅ Gravação de áudio
+- ✅ Respostas rápidas
+- ✅ Reply/Quote de mensagem
+- ✅ Auto-resize do textarea
+- ✅ Envio com Enter (Shift+Enter para nova linha)
+- ✅ Preview de mídia antes de enviar
+
+Props: `onSendText`, `onSendMedia`, `onSendAudio`, `replyingTo`, `onCancelReply`, `disabled`
+
+---
+
+### ColorPicker
+**Localização**: `resources/js/Components/UI/ColorPicker.tsx`
+
+Seletor de cores com preset de 12 cores e input customizado (hex).
+
+Preset cores: Verde, Azul, Laranja, Vermelho, Roxo, Pink, Verde esmeralda, Laranja escuro, Indigo, Teal, Rosa, Roxo claro
+
+Props: `value`, `onChange`, `label`, `error`
+
+---
+
+## Páginas CRUD (Fase 6.4) ✅
+
+### Departments/Index
+**Localização**: `resources/js/Pages/Departments/Index.tsx`
+
+Página completa de CRUD de Departamentos com:
+- ✅ Lista com Table component
+- ✅ Modal de criação
+- ✅ Modal de edição
+- ✅ ColorPicker para cores
+- ✅ Toggle ativo/inativo
+- ✅ ConfirmDialog para exclusão
+- ✅ Contagem de membros e conversas
+
+---
+
+### Tags/Index
+**Localização**: `resources/js/Pages/Tags/Index.tsx`
+
+Página completa de CRUD de Tags com:
+- ✅ Lista com Table component
+- ✅ Modal de criação
+- ✅ Modal de edição
+- ✅ ColorPicker para cores
+- ✅ ConfirmDialog para exclusão
+- ✅ Contagem de conversas e contatos
+- ✅ Preview da tag com cor
+
+---
+
+### Members/Index
+**Localização**: `resources/js/Pages/Members/Index.tsx`
+
+Página completa de CRUD de Membros com:
+- ✅ Lista com Table component
+- ✅ Modal de criação
+- ✅ Modal de edição
+- ✅ Select de usuários e departamentos
+- ✅ Max concurrent chats (slider visual)
+- ✅ Toggle ativo/inativo
+- ✅ ConfirmDialog para remoção
+- ✅ Barra de progresso de utilização
+- ✅ Slots disponíveis
+
+---
+
 ## Importação
 
 Todos os componentes podem ser importados de:
 
 ```tsx
+// UI Base
 import { Button, Input, Modal, ConfirmDialog, ... } from '@/Components/UI';
+import ColorPicker from '@/Components/UI/ColorPicker';
+
+// Chat Components
+import EmojiPicker from '@/Components/Chat/EmojiPicker';
+import AttachmentMenu from '@/Components/Chat/AttachmentMenu';
+import AudioRecorder from '@/Components/Chat/AudioRecorder';
+import QuickReplies from '@/Components/Chat/QuickReplies';
+import TypingIndicator from '@/Components/Chat/TypingIndicator';
+import ReplyPreview from '@/Components/Chat/ReplyPreview';
+import MediaPreview from '@/Components/Chat/MediaPreview';
+import MessageBubble from '@/Components/Chat/MessageBubble';
+import MessageInput from '@/Components/Chat/MessageInput';
 ```

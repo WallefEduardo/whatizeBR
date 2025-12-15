@@ -6,9 +6,11 @@ import {
     MessageSquare,
     Building2,
     Tag,
+    Calendar,
     Settings,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Send
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -27,6 +29,8 @@ const navigation: NavItem[] = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Contatos', href: '/contacts', icon: Users },
     { name: 'Chat', href: '/chat', icon: MessageSquare },
+    { name: 'Agendamentos', href: '/schedules', icon: Calendar },
+    { name: 'Transmissões', href: '/broadcasts', icon: Send },
     { name: 'Departamentos', href: '/departments', icon: Building2, roles: ['admin', 'supervisor'] },
     { name: 'Tags', href: '/tags', icon: Tag, roles: ['admin', 'supervisor'] },
     { name: 'Configurações', href: '/settings', icon: Settings, roles: ['admin'] },

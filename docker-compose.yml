@@ -56,6 +56,21 @@ services:
     networks:
       - whatize
 
+  # Soketi - WebSocket Server (Pusher replacement)
+  soketi:
+    image: quay.io/soketi/soketi:latest-16-alpine
+    container_name: whatize_soketi
+    ports:
+      - "6001:6001"
+      - "9601:9601"
+    environment:
+      - SOKETI_DEBUG=1
+      - SOKETI_DEFAULT_APP_ID=whatize-app
+      - SOKETI_DEFAULT_APP_KEY=whatizeappkey
+      - SOKETI_DEFAULT_APP_SECRET=whatizeappsecret
+    networks:
+      - whatize
+
 networks:
   whatize:
     driver: bridge

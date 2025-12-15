@@ -3,106 +3,75 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tag;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class TagController extends Controller
 {
     /**
      * Display a listing of tags
      */
-    public function index(): JsonResponse
+    public function index()
     {
-        $tags = Tag::where('user_id', Auth::id())
+        $tags = Tag::withCount(['conversations', 'contacts'])
             ->orderBy('name')
             ->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => $tags,
+        return Inertia::render('Tags/Index', [
+            'tags' => $tags,
         ]);
     }
 
     /**
      * Store a newly created tag
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'color' => ['nullable', 'string', 'max:20'],
+            'name' => 'required|string|max:100',
+            'color' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
+            'instance_id' => 'nullable|exists:instances,id',
         ]);
-
-        $validated['user_id'] = Auth::id();
-
-        // Check if tag already exists for this user
-        $existing = Tag::where('user_id', $validated['user_id'])
-            ->where('name', $validated['name'])
-            ->first();
-
-        if ($existing) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Uma tag com este nome já existe.',
-            ], 422);
-        }
 
         $tag = Tag::create($validated);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Tag criada com sucesso.',
-            'data' => $tag,
-        ], 201);
+        return redirect()->back()->with('success', 'Tag criada com sucesso!');
+    }
+
+    /**
+     * Display the specified tag
+     */
+    public function show(Tag $tag)
+    {
+        $tag->load(['conversations', 'contacts']);
+
+        return Inertia::render('Tags/Show', [
+            'tag' => $tag,
+        ]);
     }
 
     /**
      * Update the specified tag
      */
-    public function update(Request $request, string $id): JsonResponse
+    public function update(Request $request, Tag $tag)
     {
-        $tag = Tag::where('user_id', Auth::id())->findOrFail($id);
-
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'color' => ['nullable', 'string', 'max:20'],
+            'name' => 'required|string|max:100',
+            'color' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
         ]);
-
-        // Check if another tag with this name exists
-        $existing = Tag::where('user_id', Auth::id())
-            ->where('name', $validated['name'])
-            ->where('id', '!=', $id)
-            ->first();
-
-        if ($existing) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Uma tag com este nome já existe.',
-            ], 422);
-        }
 
         $tag->update($validated);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Tag atualizada com sucesso.',
-            'data' => $tag,
-        ]);
+        return redirect()->back()->with('success', 'Tag atualizada com sucesso!');
     }
 
     /**
      * Remove the specified tag
      */
-    public function destroy(string $id): JsonResponse
+    public function destroy(Tag $tag)
     {
-        $tag = Tag::where('user_id', Auth::id())->findOrFail($id);
-
         $tag->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Tag deletada com sucesso.',
-        ]);
+        return redirect()->back()->with('success', 'Tag excluída com sucesso!');
     }
 }
