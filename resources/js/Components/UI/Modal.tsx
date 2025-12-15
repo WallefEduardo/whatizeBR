@@ -7,7 +7,7 @@ export interface ModalProps {
     show: boolean;
     onClose: () => void;
     title?: string;
-    maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+    maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl';
     closeable?: boolean;
 }
 
@@ -25,6 +25,8 @@ export default function Modal({
         lg: 'sm:max-w-lg',
         xl: 'sm:max-w-xl',
         '2xl': 'sm:max-w-2xl',
+        '3xl': 'sm:max-w-3xl',
+        '4xl': 'sm:max-w-4xl',
     };
 
     return (
@@ -58,19 +60,19 @@ export default function Modal({
                     >
                         <Dialog.Panel
                             className={cn(
-                                'relative w-full transform overflow-hidden rounded bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full',
+                                'relative w-full transform overflow-hidden rounded bg-white dark:bg-dark-800 text-left shadow-xl transition-all sm:my-8 sm:w-full',
                                 maxWidthClass[maxWidth]
                             )}
                         >
                             {title && (
-                                <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-                                    <Dialog.Title className="text-lg font-semibold text-gray-900">
+                                <div className="flex items-center justify-between border-b border-dark-200 dark:border-dark-700 px-6 py-4">
+                                    <Dialog.Title className="text-lg font-semibold text-dark-900 dark:text-dark-50">
                                         {title}
                                     </Dialog.Title>
                                     {closeable && (
                                         <button
                                             type="button"
-                                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                                            className="text-dark-400 hover:text-dark-600 dark:hover:text-dark-300 transition-colors"
                                             onClick={onClose}
                                         >
                                             <X className="h-5 w-5" />

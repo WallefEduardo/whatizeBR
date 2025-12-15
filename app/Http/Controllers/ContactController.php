@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contact;
+use App\Models\CustomField;
 use App\Models\Tag;
 use App\Models\WhatsAppInstance;
 use Illuminate\Http\JsonResponse;
@@ -84,9 +85,20 @@ class ContactController extends Controller
 
         $tags = Tag::where('user_id', $user->id)->orderBy('name')->get();
 
+        // Get custom fields for the first instance (or filter by selected instance)
+        $firstInstance = $instances->first();
+        $customFields = [];
+
+        if ($firstInstance) {
+            $customFields = CustomField::forInstance($firstInstance->id)
+                ->ordered()
+                ->get();
+        }
+
         return Inertia::render('Contacts/Create', [
             'instances' => $instances,
             'tags' => $tags,
+            'customFields' => $customFields,
         ]);
     }
 
@@ -180,9 +192,15 @@ class ContactController extends Controller
 
         $tags = Tag::where('user_id', $user->id)->orderBy('name')->get();
 
+        // Get custom fields for this contact's instance
+        $customFields = CustomField::forInstance($contact->instance_id)
+            ->ordered()
+            ->get();
+
         return Inertia::render('Contacts/Edit', [
             'contact' => $contact,
             'tags' => $tags,
+            'customFields' => $customFields,
         ]);
     }
 

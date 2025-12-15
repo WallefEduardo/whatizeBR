@@ -12,6 +12,8 @@ class WhatsAppInstance extends Model
 {
     use HasFactory, SoftDeletes, HasUuids;
 
+    protected $table = 'whatsapp_instances';
+
     protected $fillable = [
         'name',
         'phone',

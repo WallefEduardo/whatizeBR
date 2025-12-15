@@ -2564,49 +2564,49 @@ class ConsumeWebhooksCommand extends Command
 ### FASE 9: Chatbot com Flow Builder (Semana 12-14)
 
 #### 9.1 Backend - Chatbots
-- [ ] Criar migrations para chatbots
-- [ ] Model Chatbot
-- [ ] ChatbotController
-- [ ] Criar migrations para chatbot_flows
-- [ ] Model ChatbotFlow
-- [ ] Criar migrations para chatbot_sessions
-- [ ] Model ChatbotSession
+- [x] Criar migrations para chatbots
+- [x] Model Chatbot
+- [x] ChatbotController
+- [x] Criar migrations para chatbot_flows
+- [x] Model ChatbotFlow
+- [x] Criar migrations para chatbot_sessions
+- [x] Model ChatbotSession
 
 #### 9.2 Backend - ChatbotService
-- [ ] ChatbotService (engine de execução)
-- [ ] Suporte a nodes:
-  - [ ] Start Node
-  - [ ] Text Node
-  - [ ] Button Node
-  - [ ] List Node
-  - [ ] Media Node (image, video, document)
-  - [ ] Delay Node
-  - [ ] Condition Node (if/else)
-  - [ ] API Node (webhook externo)
-  - [ ] Transfer Node (transferir para atendente)
-  - [ ] End Node
-- [ ] Variáveis dinâmicas ({{name}}, {{phone}}, etc)
-- [ ] Job ProcessChatbotFlow
+- [x] ChatbotService (engine de execução)
+- [x] Suporte a nodes:
+  - [x] Start Node
+  - [x] Text Node
+  - [x] Button Node
+  - [x] List Node
+  - [x] Media Node (image, video, document)
+  - [x] Delay Node
+  - [x] Condition Node (if/else)
+  - [x] API Node (webhook externo)
+  - [x] Transfer Node (transferir para atendente)
+  - [x] End Node
+- [x] Variáveis dinâmicas ({{name}}, {{phone}}, etc)
+- [x] Job ProcessChatbotFlow
 
 #### 9.3 Frontend - Flow Builder
-- [ ] Instalar react-flow ou xyflow
-- [ ] FlowBuilder component (canvas drag & drop)
-- [ ] NodePalette (lista de nodes disponíveis)
-- [ ] NodeEditor (sidebar para editar node selecionado)
-- [ ] Implementar cada tipo de node:
-  - [ ] StartNode
-  - [ ] TextNode
-  - [ ] ButtonNode
-  - [ ] ListNode
-  - [ ] MediaNode
-  - [ ] DelayNode
-  - [ ] ConditionNode
-  - [ ] ApiNode
-  - [ ] TransferNode
-  - [ ] EndNode
-- [ ] Validação de flow (start node obrigatório, etc)
-- [ ] Salvar/Carregar flow
-- [ ] FlowSimulator (teste de flow)
+- [x] Instalar react-flow ou xyflow
+- [x] FlowBuilder component (canvas drag & drop)
+- [x] NodePalette (lista de nodes disponíveis)
+- [x] NodeEditor (sidebar para editar node selecionado)
+- [x] Implementar cada tipo de node:
+  - [x] StartNode
+  - [x] TextNode
+  - [x] ButtonNode
+  - [x] ListNode
+  - [x] MediaNode
+  - [x] DelayNode
+  - [x] ConditionNode
+  - [x] ApiNode
+  - [x] TransferNode
+  - [x] EndNode
+- [x] Validação de flow (start node obrigatório, etc)
+- [x] Salvar/Carregar flow
+- [x] FlowSimulator (teste de flow)
 
 #### 9.4 Frontend - Chatbot Management
 - [ ] Página de listagem de chatbots
@@ -2619,33 +2619,33 @@ class ConsumeWebhooksCommand extends Command
 
 ### FASE 10: Campos Personalizados (Semana 15)
 
-#### 10.1 Backend
-- [ ] Criar migrations para custom_fields
-- [ ] Model CustomField
-- [ ] CustomFieldController
-- [ ] Validação dinâmica por tipo de campo
+#### 10.1 Backend ✅
+- [x] Criar migrations para custom_fields
+- [x] Model CustomField
+- [x] CustomFieldController
+- [x] Validação dinâmica por tipo de campo
 
-#### 10.2 Frontend
-- [ ] Página de gerenciamento de campos
-- [ ] Modal de criação/edição
-- [ ] Renderização dinâmica de campos no formulário de contato
-- [ ] Validação client-side
+#### 10.2 Frontend ✅
+- [x] Página de gerenciamento de campos
+- [x] Modal de criação/edição
+- [x] Renderização dinâmica de campos no formulário de contato
+- [x] Validação client-side
 
 ---
 
 ### FASE 11: Dashboard e Relatórios (Semana 16)
 
 #### 11.1 Backend - Analytics
-- [ ] Criar queries otimizadas para estatísticas:
-  - [ ] Total de conversas (hoje, semana, mês)
-  - [ ] Taxa de resposta
-  - [ ] Tempo médio de primeira resposta
-  - [ ] Tempo médio de resolução
-  - [ ] Conversas por atendente
-  - [ ] Conversas por departamento
-  - [ ] Horários de pico
-  - [ ] Mensagens enviadas vs recebidas
-- [ ] Cache de estatísticas (Redis)
+- [x] Criar queries otimizadas para estatísticas:
+  - [x] Total de conversas (hoje, semana, mês)
+  - [x] Taxa de resposta
+  - [x] Tempo médio de primeira resposta
+  - [x] Tempo médio de resolução
+  - [x] Conversas por atendente
+  - [x] Conversas por departamento
+  - [x] Horários de pico
+  - [x] Mensagens enviadas vs recebidas
+- [x] Cache de estatísticas (Redis)
 
 #### 11.2 Frontend - Dashboard
 - [ ] Layout de dashboard com grid responsivo

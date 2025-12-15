@@ -1,4 +1,4 @@
-import AppLayout from '@/Components/Layout/AppLayout';
+import AppLayout from '@/Layouts/AppLayout';
 import Button from '@/Components/UI/Button';
 import Badge from '@/Components/UI/Badge';
 import { useState } from 'react';

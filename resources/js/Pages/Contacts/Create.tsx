@@ -3,6 +3,8 @@ import { router } from '@inertiajs/react'
 import { ArrowLeft, Save } from 'lucide-react'
 import AppLayout from '@/Layouts/AppLayout'
 import Button from '@/Components/UI/Button'
+import DynamicFieldRenderer, { CustomFieldDefinition } from '@/Components/CustomFields/DynamicFieldRenderer'
+import { validateCustomFields, hasValidationErrors } from '@/Components/CustomFields/customFieldValidation'
 
 interface Tag {
     id: string
@@ -18,9 +20,10 @@ interface Instance {
 interface Props {
     instances: Instance[]
     tags: Tag[]
+    customFields: CustomFieldDefinition[]
 }
 
-export default function ContactsCreate({ instances, tags }: Props) {
+export default function ContactsCreate({ instances, tags, customFields }: Props) {
     const [formData, setFormData] = useState({
         instance_id: instances[0]?.id || '',
         phone: '',
@@ -28,7 +31,7 @@ export default function ContactsCreate({ instances, tags }: Props) {
         email: '',
         notes: '',
         tag_ids: [] as string[],
-        custom_fields: {},
+        custom_fields: {} as Record<string, any>,
     })
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [errors, setErrors] = useState<Record<string, string>>({})
@@ -37,6 +40,15 @@ export default function ContactsCreate({ instances, tags }: Props) {
         e.preventDefault()
         setIsSubmitting(true)
         setErrors({})
+
+        // Validate custom fields on client-side
+        const customFieldErrors = validateCustomFields(customFields, formData.custom_fields)
+
+        if (hasValidationErrors(customFieldErrors)) {
+            setErrors(customFieldErrors)
+            setIsSubmitting(false)
+            return
+        }
 
         router.post('/contacts', formData, {
             onSuccess: () => {
@@ -58,6 +70,16 @@ export default function ContactsCreate({ instances, tags }: Props) {
             tag_ids: prev.tag_ids.includes(tagId)
                 ? prev.tag_ids.filter(id => id !== tagId)
                 : [...prev.tag_ids, tagId]
+        }))
+    }
+
+    const handleCustomFieldChange = (fieldId: string, value: any) => {
+        setFormData(prev => ({
+            ...prev,
+            custom_fields: {
+                ...prev.custom_fields,
+                [fieldId]: value
+            }
         }))
     }
 
@@ -212,6 +234,17 @@ export default function ContactsCreate({ instances, tags }: Props) {
                                 ))}
                             </div>
                         </div>
+                    )}
+
+                    {/* Custom Fields */}
+                    {customFields.length > 0 && (
+                        <DynamicFieldRenderer
+                            fields={customFields}
+                            values={formData.custom_fields}
+                            onChange={handleCustomFieldChange}
+                            errors={errors}
+                            disabled={isSubmitting}
+                        />
                     )}
 
                     {/* Actions */}

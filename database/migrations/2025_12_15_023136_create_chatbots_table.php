@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('chatbots', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('instance_id')->constrained('instances')->onDelete('cascade');
+            $table->foreignUuid('instance_id')->constrained('whatsapp_instances')->onDelete('cascade');
             $table->string('name');
             $table->text('description')->nullable();
             $table->enum('trigger_type', ['keyword', 'always', 'business_hours', 'custom'])->default('keyword');

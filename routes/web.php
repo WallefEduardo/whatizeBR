@@ -14,9 +14,7 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [\App\Http\Controllers\AnalyticsController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -74,6 +72,31 @@ Route::middleware('auth')->group(function () {
     // Chatbots
     Route::resource('chatbots', \App\Http\Controllers\ChatbotController::class);
     Route::post('/chatbots/{chatbot}/toggle', [\App\Http\Controllers\ChatbotController::class, 'toggle'])->name('chatbots.toggle');
+    Route::get('/chatbots/{chatbot}/builder', [\App\Http\Controllers\ChatbotController::class, 'builder'])->name('chatbots.builder');
+
+    // Chatbot Flows
+    Route::resource('chatbot-flows', \App\Http\Controllers\ChatbotFlowController::class);
+
+    // Settings
+    Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
+
+    // Custom Fields
+    Route::resource('custom-fields', \App\Http\Controllers\CustomFieldController::class);
+    Route::post('/custom-fields/update-order', [\App\Http\Controllers\CustomFieldController::class, 'updateOrder'])->name('custom-fields.update-order');
+
+    // Analytics
+    Route::prefix('analytics')->name('analytics.')->group(function () {
+        Route::get('/conversations', [\App\Http\Controllers\AnalyticsController::class, 'conversations'])->name('conversations');
+        Route::get('/response-rate', [\App\Http\Controllers\AnalyticsController::class, 'responseRate'])->name('response-rate');
+        Route::get('/first-response-time', [\App\Http\Controllers\AnalyticsController::class, 'firstResponseTime'])->name('first-response-time');
+        Route::get('/resolution-time', [\App\Http\Controllers\AnalyticsController::class, 'resolutionTime'])->name('resolution-time');
+        Route::get('/by-agent', [\App\Http\Controllers\AnalyticsController::class, 'byAgent'])->name('by-agent');
+        Route::get('/by-department', [\App\Http\Controllers\AnalyticsController::class, 'byDepartment'])->name('by-department');
+        Route::get('/peak-hours', [\App\Http\Controllers\AnalyticsController::class, 'peakHours'])->name('peak-hours');
+        Route::get('/messages', [\App\Http\Controllers\AnalyticsController::class, 'messages'])->name('messages');
+        Route::get('/over-time', [\App\Http\Controllers\AnalyticsController::class, 'overTime'])->name('over-time');
+        Route::post('/clear-cache', [\App\Http\Controllers\AnalyticsController::class, 'clearCache'])->name('clear-cache');
+    });
 
     // WebSocket Test Routes (Development Only)
     if (config('app.debug')) {

@@ -16,8 +16,17 @@ class ChatbotFactory extends Factory
      */
     public function definition(): array
     {
+        $triggerTypes = ['keyword', 'always', 'business_hours', 'custom'];
+        $triggerType = fake()->randomElement($triggerTypes);
+
         return [
-            //
+            'instance_id' => \App\Models\Instance::factory(),
+            'name' => fake()->words(3, true),
+            'description' => fake()->sentence(),
+            'trigger_type' => $triggerType,
+            'trigger_value' => $triggerType === 'keyword' ? fake()->word() : null,
+            'is_active' => fake()->boolean(80),
+            'priority' => fake()->numberBetween(0, 10),
         ];
     }
 }

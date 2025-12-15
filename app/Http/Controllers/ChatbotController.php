@@ -92,6 +92,19 @@ class ChatbotController extends Controller
     }
 
     /**
+     * Show the flow builder for the chatbot.
+     */
+    public function builder(Chatbot $chatbot)
+    {
+        $flow = $chatbot->flows()->first();
+
+        return Inertia::render('Chatbots/Builder', [
+            'chatbot' => $chatbot,
+            'flow' => $flow,
+        ]);
+    }
+
+    /**
      * Toggle the active status of the chatbot.
      */
     public function toggle(Chatbot $chatbot)

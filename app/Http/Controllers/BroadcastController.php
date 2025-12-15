@@ -8,6 +8,7 @@ use App\Models\Tag;
 use App\Models\Department;
 use App\Services\BroadcastService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class BroadcastController extends Controller
@@ -22,7 +23,7 @@ class BroadcastController extends Controller
     public function index(Request $request)
     {
         $query = Broadcast::with(['user', 'instance'])
-            ->where('instance_id', $request->user()->instance_id ?? 'temp-instance-id');
+            ->where('instance_id', $request->user()->instance_id ?? Str::uuid()->toString());
 
         // Filter by status
         if ($request->has('status') && $request->status !== 'all') {
@@ -89,7 +90,7 @@ class BroadcastController extends Controller
         }
 
         // Get instance_id (you'll need to implement proper instance selection)
-        $instanceId = $request->user()->instance_id ?? 'temp-instance-id';
+        $instanceId = $request->user()->instance_id ?? Str::uuid()->toString();
 
         // Get recipient count
         $recipientCount = $this->broadcastService->getRecipientCount(
@@ -249,7 +250,7 @@ class BroadcastController extends Controller
             'filters.exclude_blocked' => 'nullable|boolean',
         ]);
 
-        $instanceId = $request->user()->instance_id ?? 'temp-instance-id';
+        $instanceId = $request->user()->instance_id ?? Str::uuid()->toString();
 
         $recipientCount = $this->broadcastService->getRecipientCount(
             $instanceId,
