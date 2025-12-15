@@ -44,10 +44,11 @@ return new class extends Migration
                 ->on('users')
                 ->onDelete('set null');
 
-            $table->foreign('department_id')
-                ->references('id')
-                ->on('departments')
-                ->onDelete('set null');
+            // TODO: Add department foreign key when departments table is created
+            // $table->foreign('department_id')
+            //     ->references('id')
+            //     ->on('departments')
+            //     ->onDelete('set null');
 
             // Indexes
             $table->index('instance_id');

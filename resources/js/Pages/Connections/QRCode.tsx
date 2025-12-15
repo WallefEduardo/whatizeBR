@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { router } from '@inertiajs/react'
 import { ArrowLeft, RefreshCw, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
-import AppLayout from '@/Components/Layout/AppLayout'
+import AppLayout from '@/Layouts/AppLayout'
 import Button from '@/Components/UI/Button'
 import Badge from '@/Components/UI/Badge'
 

@@ -14,6 +14,10 @@ class RabbitMQService
 
     public function __construct()
     {
+        // RabbitMQ desabilitado - usando Redis Queue
+        // Descomentar quando RabbitMQ estiver configurado
+        return;
+
         try {
             $this->connection = new AMQPStreamConnection(
                 config('rabbitmq.host'),

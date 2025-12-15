@@ -50,11 +50,6 @@ return new class extends Migration
                 ->on('conversations')
                 ->onDelete('cascade');
 
-            $table->foreign('replied_to_message_id')
-                ->references('id')
-                ->on('messages')
-                ->onDelete('set null');
-
             // Indexes
             $table->index('instance_id');
             $table->index('conversation_id');
@@ -65,6 +60,14 @@ return new class extends Migration
             $table->index('from_phone');
             $table->index('to_phone');
             $table->index('created_at');
+        });
+
+        // Add self-referencing foreign key after table creation
+        Schema::table('messages', function (Blueprint $table) {
+            $table->foreign('replied_to_message_id')
+                ->references('id')
+                ->on('messages')
+                ->onDelete('set null');
         });
     }
 

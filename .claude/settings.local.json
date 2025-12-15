@@ -5,7 +5,17 @@
       "Bash(composer:*)",
       "Bash(php artisan:*)",
       "Bash(npm install:*)",
-      "Bash(docker-compose exec:*)"
+      "Bash(docker-compose exec:*)",
+      "Bash(copy \"C:\\laragon\\bin\\php\\php-8.3.26-Win32-vs16-x64\\libpq.dll\" \"C:\\Windows\\System32\"\")",
+      "Bash(unset DB_HOST)",
+      "Bash(timeout 2 curl:*)",
+      "Bash(rm:*)",
+      "Bash(curl:*)",
+      "Bash(cat:*)",
+      "Bash(npx tsc:*)",
+      "Bash(find:*)",
+      "Bash(set DB_HOST=)",
+      "Bash(php -r:*)"
     ]
   }
 }

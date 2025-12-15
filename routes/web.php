@@ -33,6 +33,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/contacts/bulk-add-tags', [\App\Http\Controllers\ContactController::class, 'bulkAddTags'])->name('contacts.bulk-add-tags');
     Route::post('/contacts/{id}/toggle-block', [\App\Http\Controllers\ContactController::class, 'toggleBlock'])->name('contacts.toggle-block');
 
+    // Chat
+    Route::get('/chat', [\App\Http\Controllers\ChatController::class, 'index'])->name('chat.index');
+    Route::get('/chat/{id}', [\App\Http\Controllers\ChatController::class, 'show'])->name('chat.show');
+    Route::post('/conversations/{id}/messages', [\App\Http\Controllers\ChatController::class, 'sendMessage'])->name('chat.send-message');
+
     // Conversations
     Route::get('/conversations', [\App\Http\Controllers\ConversationController::class, 'index'])->name('conversations.index');
     Route::get('/conversations/{id}', [\App\Http\Controllers\ConversationController::class, 'show'])->name('conversations.show');

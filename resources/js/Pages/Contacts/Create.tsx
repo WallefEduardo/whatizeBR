@@ -1,7 +1,7 @@
 import { useState, FormEvent } from 'react'
 import { router } from '@inertiajs/react'
 import { ArrowLeft, Save } from 'lucide-react'
-import AppLayout from '@/Components/Layout/AppLayout'
+import AppLayout from '@/Layouts/AppLayout'
 import Button from '@/Components/UI/Button'
 
 interface Tag {

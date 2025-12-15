@@ -1,6 +1,6 @@
 import { router } from '@inertiajs/react'
 import { ArrowLeft, Edit, Mail, Phone, Calendar, MessageSquare, Clock, Tag as TagIcon, FileText } from 'lucide-react'
-import AppLayout from '@/Components/Layout/AppLayout'
+import AppLayout from '@/Layouts/AppLayout'
 import Button from '@/Components/UI/Button'
 import Badge from '@/Components/UI/Badge'
 

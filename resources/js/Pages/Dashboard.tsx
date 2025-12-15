@@ -1,26 +1,35 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import AppLayout from '@/Layouts/AppLayout';
 
 export default function Dashboard() {
     return (
-        <AuthenticatedLayout
-            header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                    Dashboard
-                </h2>
-            }
+        <AppLayout
+            title="Dashboard"
+            breadcrumbs={[
+                { label: 'Dashboard', href: '/dashboard' }
+            ]}
         >
-            <Head title="Dashboard" />
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                {/* Cards de estatísticas virão aqui */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Conversas</h3>
+                    <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">0</p>
+                </div>
 
-            <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                        <div className="p-6 text-gray-900">
-                            You're logged in!
-                        </div>
-                    </div>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Conversas Abertas</h3>
+                    <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">0</p>
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Mensagens Hoje</h3>
+                    <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">0</p>
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Instâncias Ativas</h3>
+                    <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">0</p>
                 </div>
             </div>
-        </AuthenticatedLayout>
+        </AppLayout>
     );
 }

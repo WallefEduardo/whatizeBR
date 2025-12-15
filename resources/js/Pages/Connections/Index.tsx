@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { router } from '@inertiajs/react'
 import { Plus, RefreshCw, Wifi, WifiOff, Loader2 } from 'lucide-react'
-import AppLayout from '@/Components/Layout/AppLayout'
+import AppLayout from '@/Layouts/AppLayout'
 import Button from '@/Components/UI/Button'
 import Table from '@/Components/UI/Table/Table'
 import TableActions from '@/Components/UI/Table/TableActions'
