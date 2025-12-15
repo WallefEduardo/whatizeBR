@@ -2390,11 +2390,11 @@ class ConsumeWebhooksCommand extends Command
 - [x] Implementar rate limiting por contato
 
 #### 3.3 Frontend - Conexão WhatsApp
-- [ ] Página de listagem de instâncias
-- [ ] Modal de criação de instância
-- [ ] Página de exibição de QR Code
-- [ ] Status de conexão em tempo real
-- [ ] Indicador visual de conexão (badge)
+- [x] Página de listagem de instâncias
+- [x] Modal de criação de instância
+- [x] Página de exibição de QR Code
+- [x] Status de conexão em tempo real
+- [x] Indicador visual de conexão (badge)
 
 ---
 

@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -12,10 +13,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tags', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->unique();
-            $table->string('color')->default('#6b7280');
+            $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
+            $table->uuid('user_id');
+            $table->string('name');
+            $table->string('color', 20)->default('#6b7280');
             $table->timestamps();
+
+            // Foreign key
+            $table->foreign('user_id')
+                ->references('id')
+                ->on('users')
+                ->onDelete('cascade');
+
+            // Unique constraint per user
+            $table->unique(['user_id', 'name']);
         });
     }
 

@@ -26,6 +26,12 @@ Route::middleware('auth')->group(function () {
     // WhatsApp Connections
     Route::get('/connections', [\App\Http\Controllers\ConnectionController::class, 'index'])->name('connections.index');
     Route::get('/connections/{token}/qr', [\App\Http\Controllers\ConnectionController::class, 'qrCode'])->name('connections.qr');
+
+    // Contacts
+    Route::resource('contacts', \App\Http\Controllers\ContactController::class);
+    Route::post('/contacts/bulk-destroy', [\App\Http\Controllers\ContactController::class, 'bulkDestroy'])->name('contacts.bulk-destroy');
+    Route::post('/contacts/bulk-add-tags', [\App\Http\Controllers\ContactController::class, 'bulkAddTags'])->name('contacts.bulk-add-tags');
+    Route::post('/contacts/{id}/toggle-block', [\App\Http\Controllers\ContactController::class, 'toggleBlock'])->name('contacts.toggle-block');
 });
 
 require __DIR__.'/auth.php';

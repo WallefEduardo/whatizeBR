@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\WhatsAppInstanceController;
+use App\Http\Controllers\TagController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -31,4 +32,12 @@ Route::prefix('whatsapp')->group(function () {
     // Disconnect and delete instance
     Route::delete('/instances/{token}', [WhatsAppInstanceController::class, 'destroy'])
         ->name('whatsapp.instances.destroy');
+});
+
+// Tags Management Routes
+Route::middleware('auth:sanctum')->prefix('tags')->group(function () {
+    Route::get('/', [TagController::class, 'index'])->name('tags.index');
+    Route::post('/', [TagController::class, 'store'])->name('tags.store');
+    Route::patch('/{id}', [TagController::class, 'update'])->name('tags.update');
+    Route::delete('/{id}', [TagController::class, 'destroy'])->name('tags.destroy');
 });
