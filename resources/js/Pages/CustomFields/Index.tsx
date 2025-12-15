@@ -107,7 +107,7 @@ export default function CustomFieldsIndex({ customFields, fieldTypes }: Props) {
             key: 'field_type',
             label: 'Tipo',
             render: (field: CustomField) => (
-                <Badge variant="default" size="sm">
+                <Badge variant="default" maxWidth="sm">
                     {getFieldTypeLabel(field.field_type)}
                 </Badge>
             ),
@@ -128,9 +128,9 @@ export default function CustomFieldsIndex({ customFields, fieldTypes }: Props) {
             label: 'Obrigatório',
             render: (field: CustomField) => (
                 field.is_required ? (
-                    <Badge variant="warning" size="sm">Sim</Badge>
+                    <Badge variant="warning" maxWidth="sm">Sim</Badge>
                 ) : (
-                    <Badge variant="default" size="sm">Não</Badge>
+                    <Badge variant="default" maxWidth="sm">Não</Badge>
                 )
             ),
         },
@@ -207,7 +207,7 @@ export default function CustomFieldsIndex({ customFields, fieldTypes }: Props) {
 
             {/* Create Modal */}
             <CustomFieldForm
-                isOpen={isCreateModalOpen}
+                show={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 fieldTypes={fieldTypes}
                 mode="create"
@@ -215,7 +215,7 @@ export default function CustomFieldsIndex({ customFields, fieldTypes }: Props) {
 
             {/* Edit Modal */}
             <CustomFieldForm
-                isOpen={isEditModalOpen}
+                show={isEditModalOpen}
                 onClose={handleCloseEditModal}
                 fieldTypes={fieldTypes}
                 customField={selectedField}

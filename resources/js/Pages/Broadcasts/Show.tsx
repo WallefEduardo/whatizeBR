@@ -63,7 +63,7 @@ export default function BroadcastShow({ broadcast }: Props) {
             failed: 'Falhou',
         };
 
-        return <Badge variant={variants[status]} size="sm">{labels[status]}</Badge>;
+        return <Badge variant={variants[status]} maxWidth="sm">{labels[status]}</Badge>;
     };
 
     const getMessageStatusIcon = (status: string) => {
@@ -85,7 +85,7 @@ export default function BroadcastShow({ broadcast }: Props) {
                 <div className="flex items-center gap-4">
                     <Button
                         variant="secondary"
-                        size="sm"
+                        maxWidth="sm"
                         onClick={() => router.visit(route('broadcasts.index'))}
                     >
                         <ArrowLeft className="w-4 h-4 mr-2" />

@@ -13,6 +13,8 @@ import {
     NodeTypes,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { router } from '@inertiajs/react';
 import NodePalette from './NodePalette';
 import NodeEditor from './NodeEditor';
 import StartNode from './Nodes/StartNode';
@@ -151,6 +153,14 @@ export default function FlowBuilder({ initialNodes = [], initialEdges = [], onSa
 
                 {/* Toolbar */}
                 <div className="absolute top-4 right-4 z-10 flex gap-2">
+                    <button
+                        onClick={() => router.visit('/chatbots')}
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white hover:bg-gray-600 transition-colors"
+                        style={{ borderRadius: '4px' }}
+                    >
+                        <ArrowLeftIcon className="w-4 h-4" />
+                        Voltar
+                    </button>
                     <button
                         onClick={() => setShowSimulator(true)}
                         className="px-4 py-2 bg-green-600 text-white hover:bg-green-700 transition-colors"

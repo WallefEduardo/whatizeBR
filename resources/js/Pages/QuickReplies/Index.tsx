@@ -263,7 +263,7 @@ export default function Index({ quickReplies, filters }: Props) {
 
             {/* Modal */}
             <QuickReplyModal
-                isOpen={isModalOpen}
+                show={isModalOpen}
                 onClose={() => {
                     setIsModalOpen(false);
                     setEditingQuickReply(null);

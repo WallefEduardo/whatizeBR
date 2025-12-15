@@ -135,7 +135,7 @@ export default function QRCodePage({ instance: initialInstance }: Props) {
                                 Token: {instance.token}
                             </p>
                         </div>
-                        <Badge variant={statusConfig.variant} className="flex items-center gap-2" size="md">
+                        <Badge variant={statusConfig.variant} className="flex items-center gap-2" maxWidth="md">
                             {statusConfig.icon}
                             {statusConfig.title}
                         </Badge>

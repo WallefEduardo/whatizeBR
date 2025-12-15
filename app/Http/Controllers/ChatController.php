@@ -15,7 +15,7 @@ class ChatController extends Controller
         $user = $request->user();
 
         $query = Conversation::with(['contact.tags', 'instance', 'lastMessage'])
-            ->where('user_id', $user->id)
+            ->where('assigned_to', $user->id)
             ->orderBy('last_message_at', 'desc');
 
         // Paginação
@@ -23,13 +23,13 @@ class ChatController extends Controller
 
         // Stats por status
         $stats = [
-            'open' => Conversation::where('user_id', $user->id)
+            'open' => Conversation::where('assigned_to', $user->id)
                 ->where('status', 'open')
                 ->count(),
-            'pending' => Conversation::where('user_id', $user->id)
+            'pending' => Conversation::where('assigned_to', $user->id)
                 ->where('status', 'pending')
                 ->count(),
-            'closed' => Conversation::where('user_id', $user->id)
+            'closed' => Conversation::where('assigned_to', $user->id)
                 ->where('status', 'closed')
                 ->count(),
         ];
@@ -45,12 +45,12 @@ class ChatController extends Controller
         $user = $request->user();
 
         $conversation = Conversation::with(['contact.tags', 'instance'])
-            ->where('user_id', $user->id)
+            ->where('assigned_to', $user->id)
             ->findOrFail($id);
 
         // Buscar todas as conversas para a lista lateral
         $conversations = Conversation::with(['contact.tags', 'instance', 'lastMessage'])
-            ->where('user_id', $user->id)
+            ->where('assigned_to', $user->id)
             ->orderBy('last_message_at', 'desc')
             ->paginate(50);
 
@@ -64,13 +64,13 @@ class ChatController extends Controller
 
         // Stats
         $stats = [
-            'open' => Conversation::where('user_id', $user->id)
+            'open' => Conversation::where('assigned_to', $user->id)
                 ->where('status', 'open')
                 ->count(),
-            'pending' => Conversation::where('user_id', $user->id)
+            'pending' => Conversation::where('assigned_to', $user->id)
                 ->where('status', 'pending')
                 ->count(),
-            'closed' => Conversation::where('user_id', $user->id)
+            'closed' => Conversation::where('assigned_to', $user->id)
                 ->where('status', 'closed')
                 ->count(),
         ];
@@ -87,7 +87,7 @@ class ChatController extends Controller
     {
         $user = $request->user();
 
-        $conversation = Conversation::where('user_id', $user->id)
+        $conversation = Conversation::where('assigned_to', $user->id)
             ->findOrFail($id);
 
         $validated = $request->validate([

@@ -96,6 +96,25 @@ Route::middleware('auth')->group(function () {
     Route::resource('quick-replies', \App\Http\Controllers\QuickReplyController::class);
     Route::get('/quick-replies-search', [\App\Http\Controllers\QuickReplyController::class, 'search'])->name('quick-replies.search');
 
+    // Notifications
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\NotificationController::class, 'index'])->name('index');
+        Route::get('/unread-count', [\App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('unread-count');
+        Route::post('/{id}/mark-as-read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('mark-as-read');
+        Route::post('/mark-all-as-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('mark-all-as-read');
+        Route::delete('/{id}', [\App\Http\Controllers\NotificationController::class, 'destroy'])->name('destroy');
+        Route::get('/preferences', [\App\Http\Controllers\NotificationController::class, 'getPreferences'])->name('preferences');
+        Route::put('/preferences', [\App\Http\Controllers\NotificationController::class, 'updatePreferences'])->name('update-preferences');
+    });
+
+    // Search
+    Route::prefix('search')->name('search.')->group(function () {
+        Route::get('/global', [\App\Http\Controllers\SearchController::class, 'global'])->name('global');
+        Route::get('/messages', [\App\Http\Controllers\SearchController::class, 'messages'])->name('messages');
+        Route::get('/contacts', [\App\Http\Controllers\SearchController::class, 'contacts'])->name('contacts');
+        Route::get('/conversations', [\App\Http\Controllers\SearchController::class, 'conversations'])->name('conversations');
+    });
+
     // Analytics
     Route::prefix('analytics')->name('analytics.')->group(function () {
         Route::get('/conversations', [\App\Http\Controllers\AnalyticsController::class, 'conversations'])->name('conversations');

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\Searchable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +10,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Message extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, Searchable;
+
+    /**
+     * Colunas pesquisáveis
+     */
+    protected array $searchable = ['content', 'caption'];
+
+    /**
+     * Colunas ordenáveis
+     */
+    protected array $sortable = ['created_at', 'sent_at', 'delivered_at', 'read_at', 'status'];
 
     protected $fillable = [
         'instance_id',

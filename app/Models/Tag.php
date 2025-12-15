@@ -12,6 +12,7 @@ class Tag extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'instance_id',
         'name',
         'color',
@@ -21,6 +22,14 @@ class Tag extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    /**
+     * Get the user that owns this tag
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     /**
      * Get the instance that owns this tag

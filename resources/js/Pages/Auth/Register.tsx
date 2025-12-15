@@ -95,7 +95,7 @@ export default function Register() {
                                 <Button
                                     type="submit"
                                     variant="primary"
-                                    size="lg"
+                                    maxWidth="lg"
                                     isLoading={processing}
                                     className="w-full"
                                 >

@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Setting;
 use App\Models\WhatsAppInstance;
+use App\Models\Member;
+use App\Models\User;
+use App\Models\Department;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -16,7 +19,7 @@ class SettingsController extends Controller
      */
     public function index(Request $request): Response
     {
-        $instanceId = $request->input('instance_id');
+        $instanceId = $request->input('instance_id') ?? $request->user()->instance_id;
 
         // Buscar todas as configurações da instância ou globais
         $query = Setting::query();
@@ -33,10 +36,44 @@ class SettingsController extends Controller
         $instances = WhatsAppInstance::select('id', 'name', 'phone', 'status')
             ->get();
 
+        // Buscar quick replies se for a tab de respostas rápidas
+        $quickReplies = null;
+        if ($instanceId) {
+            $quickReplies = \App\Models\QuickReply::forInstance($instanceId)
+                ->orderBy('shortcut', 'asc')
+                ->paginate(15);
+        }
+
+        // Buscar members para a tab de membros
+        $members = Member::with(['user', 'department', 'instance'])
+            ->withCount('activeConversations')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($member) {
+                return [
+                    'id' => $member->id,
+                    'user' => $member->user,
+                    'department' => $member->department,
+                    'instance' => $member->instance,
+                    'is_active' => $member->is_active,
+                    'max_concurrent_chats' => $member->max_concurrent_chats,
+                    'active_conversations_count' => $member->active_conversations_count,
+                    'available_slots' => $member->available_slots,
+                    'created_at' => $member->created_at,
+                ];
+            });
+
+        $users = User::orderBy('name')->get(['id', 'name', 'email']);
+        $departments = Department::active()->orderBy('name')->get(['id', 'name', 'color']);
+
         return Inertia::render('Settings/Index', [
             'settings' => $settings,
             'instances' => $instances,
             'currentInstanceId' => $instanceId,
+            'quickReplies' => $quickReplies,
+            'members' => $members,
+            'users' => $users,
+            'departments' => $departments,
         ]);
     }
 

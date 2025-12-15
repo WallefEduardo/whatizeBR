@@ -1,7 +1,12 @@
 import { Link, router } from '@inertiajs/react';
 import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Search, Bell, User, LogOut, Settings, Menu } from 'lucide-react';
+import { Bell, User, LogOut, Settings, Menu } from 'lucide-react';
+import SearchBar from '@/Components/Common/SearchBar';
+import SearchResultsModal from '@/Components/Common/SearchResultsModal';
+import NotificationDropdown from '@/Components/Layout/NotificationDropdown';
+import NotificationBadge from '@/Components/Layout/NotificationBadge';
+import { useSearch } from '@/Hooks/useSearch';
 
 interface NavbarProps {
     user: any;
@@ -12,9 +17,11 @@ interface NavbarProps {
 export default function Navbar({ user, onMenuClick, sidebarCollapsed = false }: NavbarProps) {
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
+    const [showSearchResults, setShowSearchResults] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const userMenuRef = useRef<HTMLDivElement>(null);
     const notificationsRef = useRef<HTMLDivElement>(null);
+    const { isLoading, results, searchGlobal, clearResults } = useSearch();
 
     // Close dropdowns when clicking outside
     useEffect(() => {
@@ -35,10 +42,18 @@ export default function Navbar({ user, onMenuClick, sidebarCollapsed = false }: 
         router.post(route('logout'));
     };
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        // Search functionality will be implemented in future phases
-        console.log('Search:', searchQuery);
+    const handleSearch = async (query: string) => {
+        setSearchQuery(query);
+        if (query.length >= 2) {
+            await searchGlobal({ query });
+            setShowSearchResults(true);
+        }
+    };
+
+    const handleClearSearch = () => {
+        setSearchQuery('');
+        clearResults();
+        setShowSearchResults(false);
     };
 
     return (
@@ -60,22 +75,14 @@ export default function Navbar({ user, onMenuClick, sidebarCollapsed = false }: 
                     </button>
 
                     {/* Search */}
-                    <form onSubmit={handleSearch} className="flex-1 max-w-md">
-                        <div className="relative">
-                            <Search
-                                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4"
-                                style={{ color: '#737373' }}
-                            />
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Buscar contatos, conversas..."
-                                className="w-full pl-10 pr-4 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 dark:text-gray-50 placeholder-gray-500 dark:placeholder-gray-400"
-                                style={{ borderRadius: '4px' }}
-                            />
-                        </div>
-                    </form>
+                    <div className="flex-1 max-w-md">
+                        <SearchBar
+                            onSearch={handleSearch}
+                            onClear={handleClearSearch}
+                            placeholder="Buscar em conversas, contatos e mensagens..."
+                            isLoading={isLoading}
+                        />
+                    </div>
                 </div>
 
                 {/* Right: Notifications + User Menu */}
@@ -87,28 +94,13 @@ export default function Navbar({ user, onMenuClick, sidebarCollapsed = false }: 
                             className="relative p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400"
                         >
                             <Bell className="w-5 h-5" style={{ color: '#737373' }} />
-                            {/* Notification badge */}
-                            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                            <NotificationBadge />
                         </button>
 
-                        {/* Notifications Dropdown */}
-                        {showNotifications && (
-                            <div
-                                className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg"
-                                style={{ borderRadius: '4px' }}
-                            >
-                                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-50">
-                                        Notificações
-                                    </h3>
-                                </div>
-                                <div className="max-h-96 overflow-y-auto">
-                                    <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                                        Nenhuma notificação
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                        <NotificationDropdown
+                            show={showNotifications}
+                            onClose={() => setShowNotifications(false)}
+                        />
                     </div>
 
                     {/* User Menu */}
@@ -176,6 +168,15 @@ export default function Navbar({ user, onMenuClick, sidebarCollapsed = false }: 
                     </div>
                 </div>
             </div>
+
+            {/* Search Results Modal */}
+            <SearchResultsModal
+                isOpen={showSearchResults}
+                onClose={() => setShowSearchResults(false)}
+                query={searchQuery}
+                results={results}
+                isLoading={isLoading}
+            />
         </header>
     );
 }

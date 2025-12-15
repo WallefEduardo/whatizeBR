@@ -1,23 +1,74 @@
 import { useState } from 'react'
 import { router, usePage } from '@inertiajs/react'
-import { Settings, Wifi, Bell, Code } from 'lucide-react'
+import { Settings, Wifi, Bell, Code, MessageSquare, Users } from 'lucide-react'
 import AppLayout from '@/Layouts/AppLayout'
 import Tabs from '@/Components/UI/Tabs'
 import Button from '@/Components/UI/Button'
-import { SettingsData, WhatsAppInstance } from '@/types'
+import { SettingsData, WhatsAppInstance, PageProps } from '@/types'
 import GeneralTab from './Tabs/GeneralTab'
 import WhatsAppTab from './Tabs/WhatsAppTab'
 import NotificationsTab from './Tabs/NotificationsTab'
 import ApiConfigTab from './Tabs/ApiConfigTab'
+import QuickRepliesTab from './Tabs/QuickRepliesTab'
+import MembersTab from './Tabs/MembersTab'
 
-interface SettingsIndexProps {
+interface QuickReply {
+    id: string
+    shortcut: string
+    message: string
+    media_url?: string
+    media_type?: 'image' | 'video' | 'audio' | 'document'
+    created_at: string
+    updated_at: string
+}
+
+interface User {
+    id: number
+    name: string
+    email: string
+}
+
+interface Department {
+    id: number
+    name: string
+    color: string
+}
+
+interface Instance {
+    id: number
+    name: string
+}
+
+interface Member {
+    id: number
+    user: User
+    department: Department | null
+    instance: Instance | null
+    is_active: boolean
+    max_concurrent_chats: number
+    active_conversations_count: number
+    available_slots: number
+    created_at: string
+}
+
+interface SettingsIndexProps extends PageProps {
     settings: SettingsData
     instances: WhatsAppInstance[]
     currentInstanceId: string | null
+    quickReplies: {
+        data: QuickReply[]
+        current_page: number
+        last_page: number
+        per_page: number
+        total: number
+    } | null
+    members?: Member[]
+    users?: User[]
+    departments?: Department[]
 }
 
 export default function SettingsIndex() {
-    const { settings, instances, currentInstanceId } = usePage<SettingsIndexProps>().props
+    const { settings, instances, currentInstanceId, quickReplies, members = [], users = [], departments = [] } = usePage<SettingsIndexProps>().props
     const [activeTab, setActiveTab] = useState('general')
     const [isSaving, setIsSaving] = useState(false)
 
@@ -64,7 +115,7 @@ export default function SettingsIndex() {
                             Configurações
                         </h1>
                     </div>
-                    <p className="text-sm text-dark-500">
+                    <p className="text-sm text-dark-500 dark:text-dark-400">
                         Gerencie as configurações do sistema
                     </p>
                 </div>
@@ -88,6 +139,14 @@ export default function SettingsIndex() {
                             <Code className="w-4 h-4" />
                             API Config
                         </Tabs.Trigger>
+                        <Tabs.Trigger value="respostasrapidas" className="flex items-center gap-2">
+                            <MessageSquare className="w-4 h-4" />
+                            Respostas Rápidas
+                        </Tabs.Trigger>
+                        <Tabs.Trigger value="membros" className="flex items-center gap-2">
+                            <Users className="w-4 h-4" />
+                            Membros
+                        </Tabs.Trigger>
                     </Tabs.List>
 
                     {/* Tab Contents */}
@@ -106,11 +165,19 @@ export default function SettingsIndex() {
                     </Tabs.Content>
 
                     <Tabs.Content value="notifications">
-                        <NotificationsTab settings={settings} onSave={handleSave} isSaving={isSaving} />
+                        <NotificationsTab />
                     </Tabs.Content>
 
                     <Tabs.Content value="api">
                         <ApiConfigTab settings={settings} onSave={handleSave} isSaving={isSaving} />
+                    </Tabs.Content>
+
+                    <Tabs.Content value="respostasrapidas">
+                        <QuickRepliesTab quickReplies={quickReplies} />
+                    </Tabs.Content>
+
+                    <Tabs.Content value="membros">
+                        <MembersTab members={members} users={users} departments={departments} />
                     </Tabs.Content>
                 </Tabs>
             </div>

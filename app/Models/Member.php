@@ -37,7 +37,7 @@ class Member extends Model
      */
     public function instance(): BelongsTo
     {
-        return $this->belongsTo(Instance::class);
+        return $this->belongsTo(WhatsAppInstance::class);
     }
 
     /**

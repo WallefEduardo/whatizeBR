@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, forwardRef } from 'react';
-import { Combobox, Transition } from '@headlessui/react';
+import { useState, forwardRef } from 'react';
+import { Combobox } from '@headlessui/react';
 import { Check, ChevronDown, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -52,6 +52,7 @@ const SearchableSelect = forwardRef<HTMLInputElement, SearchableSelectProps>(
                     value={value}
                     onChange={(newValue) => onChange?.(newValue as string | number)}
                     disabled={disabled}
+                    onClose={() => setQuery('')}
                 >
                     <div className="relative">
                         <div className={cn(
@@ -70,49 +71,42 @@ const SearchableSelect = forwardRef<HTMLInputElement, SearchableSelectProps>(
                                 <ChevronDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
                             </Combobox.Button>
                         </div>
-                        <Transition
-                            leave="transition ease-in duration-100"
-                            leaveFrom="opacity-100"
-                            leaveTo="opacity-0"
-                            afterLeave={() => setQuery('')}
-                        >
-                            <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                {filteredOptions.length === 0 && query !== '' ? (
-                                    <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
-                                        Nenhum resultado encontrado.
-                                    </div>
-                                ) : (
-                                    filteredOptions.map((option) => (
-                                        <Combobox.Option
-                                            key={option.value}
-                                            className={({ active }) =>
-                                                cn(
-                                                    'relative cursor-pointer select-none py-2 pl-10 pr-4',
-                                                    active ? 'bg-primary-50 text-primary-900' : 'text-gray-900'
-                                                )
-                                            }
-                                            value={option.value}
-                                        >
-                                            {({ selected, active }) => (
-                                                <>
-                                                    <span className={cn('block truncate', selected ? 'font-medium' : 'font-normal')}>
-                                                        {option.label}
+                        <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm transition ease-in duration-100 data-[closed]:opacity-0">
+                            {filteredOptions.length === 0 && query !== '' ? (
+                                <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
+                                    Nenhum resultado encontrado.
+                                </div>
+                            ) : (
+                                filteredOptions.map((option) => (
+                                    <Combobox.Option
+                                        key={option.value}
+                                        className={({ active }) =>
+                                            cn(
+                                                'relative cursor-pointer select-none py-2 pl-10 pr-4',
+                                                active ? 'bg-primary-50 text-primary-900' : 'text-gray-900'
+                                            )
+                                        }
+                                        value={option.value}
+                                    >
+                                        {({ selected, active }) => (
+                                            <>
+                                                <span className={cn('block truncate', selected ? 'font-medium' : 'font-normal')}>
+                                                    {option.label}
+                                                </span>
+                                                {selected ? (
+                                                    <span className={cn(
+                                                        'absolute inset-y-0 left-0 flex items-center pl-3',
+                                                        active ? 'text-primary' : 'text-primary'
+                                                    )}>
+                                                        <Check className="h-4 w-4" aria-hidden="true" />
                                                     </span>
-                                                    {selected ? (
-                                                        <span className={cn(
-                                                            'absolute inset-y-0 left-0 flex items-center pl-3',
-                                                            active ? 'text-primary' : 'text-primary'
-                                                        )}>
-                                                            <Check className="h-4 w-4" aria-hidden="true" />
-                                                        </span>
-                                                    ) : null}
-                                                </>
-                                            )}
-                                        </Combobox.Option>
-                                    ))
-                                )}
-                            </Combobox.Options>
-                        </Transition>
+                                                ) : null}
+                                            </>
+                                        )}
+                                    </Combobox.Option>
+                                ))
+                            )}
+                        </Combobox.Options>
                     </div>
                 </Combobox>
                 {error && (

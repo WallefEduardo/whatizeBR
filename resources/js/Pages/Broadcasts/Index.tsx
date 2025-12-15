@@ -364,7 +364,7 @@ export default function BroadcastsIndex({ broadcasts, filters }: Props) {
             {/* Confirm Dialog */}
             {options && (
                 <ConfirmDialog
-                    isOpen={isOpen}
+                    show={isOpen}
                     onClose={handleClose}
                     onConfirm={handleConfirm}
                     title={options.title}

@@ -11,9 +11,10 @@ class TagController extends Controller
     /**
      * Display a listing of tags
      */
-    public function index()
+    public function index(Request $request)
     {
-        $tags = Tag::withCount(['conversations', 'contacts'])
+        $tags = Tag::where('user_id', $request->user()->id)
+            ->withCount(['conversations', 'contacts'])
             ->orderBy('name')
             ->get();
 
@@ -32,6 +33,8 @@ class TagController extends Controller
             'color' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
             'instance_id' => 'nullable|exists:instances,id',
         ]);
+
+        $validated['user_id'] = $request->user()->id;
 
         $tag = Tag::create($validated);
 

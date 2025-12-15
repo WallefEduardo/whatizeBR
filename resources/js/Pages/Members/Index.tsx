@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Head, router } from '@inertiajs/react'
-import AppLayout from '@/Components/Layout/AppLayout'
+import AppLayout from '@/Layouts/AppLayout'
 import Button from '@/Components/UI/Button'
 import Modal from '@/Components/UI/Modal'
 import Table from '@/Components/UI/Table/Table'
@@ -280,10 +280,10 @@ export default function MembersIndex({ members, users, departments }: Props) {
 
       {/* Create Modal */}
       <Modal
-        isOpen={isCreateModalOpen}
+        show={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         title="Adicionar Membro"
-        size="md"
+        maxWidth="md"
       >
         <form onSubmit={handleSubmitCreate} className="space-y-4">
           <div>
@@ -378,10 +378,10 @@ export default function MembersIndex({ members, users, departments }: Props) {
 
       {/* Edit Modal */}
       <Modal
-        isOpen={isEditModalOpen}
+        show={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         title="Editar Membro"
-        size="md"
+        maxWidth="md"
       >
         <form onSubmit={handleSubmitEdit} className="space-y-4">
           <div>
@@ -455,7 +455,7 @@ export default function MembersIndex({ members, users, departments }: Props) {
       {/* Confirm Dialog */}
       {options && (
         <ConfirmDialog
-          isOpen={isOpen}
+          show={isOpen}
           onClose={handleClose}
           onConfirm={handleConfirm}
           title={options.title}

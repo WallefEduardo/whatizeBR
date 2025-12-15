@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\Searchable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Contact extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, Searchable;
+
+    /**
+     * Colunas pesquisáveis
+     */
+    protected array $searchable = ['name', 'phone', 'email', 'notes'];
+
+    /**
+     * Colunas ordenáveis
+     */
+    protected array $sortable = ['name', 'phone', 'email', 'created_at', 'last_interaction_at'];
 
     protected $fillable = [
         'instance_id',

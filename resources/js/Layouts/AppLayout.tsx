@@ -4,6 +4,7 @@ import Sidebar from '@/Components/Layout/Sidebar';
 import Navbar from '@/Components/Layout/Navbar';
 import Breadcrumbs, { BreadcrumbItem } from '@/Components/Layout/Breadcrumbs';
 import ThemeToggle from '@/Components/Layout/ThemeToggle';
+import { useNotifications } from '@/Hooks/useNotifications';
 import { cn } from '@/lib/utils';
 
 interface AppLayoutProps {
@@ -17,6 +18,9 @@ export default function AppLayout({ children, title, breadcrumbs = [] }: AppLayo
     const user = props.auth?.user as any;
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    // Initialize notifications (desktop + audio)
+    useNotifications({ enableRealtime: true });
 
     return (
         <>

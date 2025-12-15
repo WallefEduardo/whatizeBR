@@ -50,7 +50,7 @@ class MemberController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'instance_id' => 'nullable|exists:instances,id',
+            'instance_id' => 'nullable|exists:whatsapp_instances,id',
             'department_id' => 'nullable|exists:departments,id',
             'is_active' => 'boolean',
             'max_concurrent_chats' => 'required|integer|min:1|max:50',

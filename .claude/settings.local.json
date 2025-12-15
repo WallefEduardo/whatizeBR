@@ -22,7 +22,13 @@
       "Bash(php artisan config:publish:*)",
       "Bash(php artisan make:migration:*)",
       "Bash(php artisan migrate:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(pkill:*)",
+      "Bash(psql:*)",
+      "Bash(php artisan migrate:status:*)",
+      "Bash(dir)",
+      "Bash(go mod init:*)",
+      "Bash(tree:*)"
     ]
   }
 }

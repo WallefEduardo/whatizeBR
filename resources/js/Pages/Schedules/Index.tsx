@@ -1,4 +1,4 @@
-import AppLayout from '@/Components/Layout/AppLayout';
+import AppLayout from '@/Layouts/AppLayout';
 import Button from '@/Components/UI/Button';
 import Badge from '@/Components/UI/Badge';
 import { Calendar, Clock, Users, Plus, Search, Filter } from 'lucide-react';
@@ -179,7 +179,7 @@ export default function Index({ schedules, filters }: Props) {
                             <p className="text-dark-500">Nenhum agendamento encontrado</p>
                             <Button
                                 variant="primary"
-                                size="sm"
+                                maxWidth="sm"
                                 className="mt-4"
                                 onClick={() => setIsModalOpen(true)}
                             >
@@ -359,7 +359,7 @@ export default function Index({ schedules, filters }: Props) {
 
             {/* Modal */}
             <ScheduleModal
-                isOpen={isModalOpen}
+                show={isModalOpen}
                 onClose={() => {
                     setIsModalOpen(false);
                     setEditingSchedule(null);

@@ -236,7 +236,7 @@ export default function ConnectionsIndex({ instances }: Props) {
 
             {/* Create Modal */}
             <Modal
-                isOpen={isCreateModalOpen}
+                show={isCreateModalOpen}
                 onClose={() => !isSubmitting && setIsCreateModalOpen(false)}
                 title="Nova Conexão WhatsApp"
                 footer={

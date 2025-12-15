@@ -21,12 +21,12 @@ interface Schedule {
 }
 
 interface Props {
-    isOpen: boolean;
+    show: boolean;
     onClose: () => void;
     schedule?: Schedule | null;
 }
 
-export default function ScheduleModal({ isOpen, onClose, schedule }: Props) {
+export default function ScheduleModal({ show, onClose, schedule }: Props) {
     const { props } = usePage();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -114,10 +114,10 @@ export default function ScheduleModal({ isOpen, onClose, schedule }: Props) {
 
     return (
         <Modal
-            isOpen={isOpen}
+            show={show}
             onClose={onClose}
             title={schedule ? 'Editar Agendamento' : 'Novo Agendamento'}
-            size="xl"
+            maxWidth="xl"
         >
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Nome */}

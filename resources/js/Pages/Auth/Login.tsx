@@ -102,7 +102,7 @@ export default function Login({
                                 <Button
                                     type="submit"
                                     variant="primary"
-                                    size="lg"
+                                    maxWidth="lg"
                                     isLoading={processing}
                                     className="w-full"
                                 >

@@ -8,7 +8,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-    ({ className, variant = 'primary', size = 'md', isLoading, disabled, children, ...props }, ref) => {
+    ({ className, variant = 'primary', size = 'md', isLoading, disabled, children, ...restProps }, ref) => {
         const baseStyles = 'inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
 
         const variants = {
@@ -25,6 +25,17 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             lg: 'h-12 px-6 text-base rounded-md',
         };
 
+        // Filter out any non-DOM props before spreading
+        const domProps = Object.keys(restProps).reduce((acc, key) => {
+            // Only include standard button attributes
+            if (key.startsWith('on') || key.startsWith('data-') || key.startsWith('aria-') ||
+                ['type', 'name', 'value', 'form', 'formAction', 'formEncType', 'formMethod',
+                 'formNoValidate', 'formTarget', 'id', 'autoFocus', 'tabIndex'].includes(key)) {
+                acc[key] = restProps[key];
+            }
+            return acc;
+        }, {} as any);
+
         return (
             <button
                 ref={ref}
@@ -35,7 +46,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
                     className
                 )}
                 disabled={disabled || isLoading}
-                {...props}
+                {...domProps}
             >
                 {isLoading && (
                     <svg className="mr-2 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

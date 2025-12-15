@@ -2704,33 +2704,33 @@ class ConsumeWebhooksCommand extends Command
 ### FASE 14: Busca Global e Filtros Avançados (Semana 19)
 
 #### 14.1 Backend
-- [ ] Implementar busca full-text em mensagens
-- [ ] Implementar busca em contatos
-- [ ] Filtros combinados (AND/OR)
-- [ ] Highlight de resultados
+- [x] Implementar busca full-text em mensagens
+- [x] Implementar busca em contatos
+- [x] Filtros combinados (AND/OR)
+- [x] Highlight de resultados
 
 #### 14.2 Frontend
-- [ ] SearchBar global (Navbar)
-- [ ] Modal de resultados com tabs (conversas, contatos, mensagens)
-- [ ] FilterPanel avançado
-- [ ] Highlight de texto buscado
+- [x] SearchBar global (Navbar)
+- [x] Modal de resultados com tabs (conversas, contatos, mensagens)
+- [x] FilterPanel avançado
+- [x] Highlight de texto buscado
 
 ---
 
 ### FASE 15: Notificações (Semana 20)
 
 #### 15.1 Backend
-- [ ] Laravel Notifications
-- [ ] Notificação de nova mensagem
-- [ ] Notificação de conversa atribuída
-- [ ] Configuração de preferências por usuário
+- [x] Laravel Notifications
+- [x] Notificação de nova mensagem
+- [x] Notificação de conversa atribuída
+- [x] Configuração de preferências por usuário
 
 #### 15.2 Frontend
-- [ ] Dropdown de notificações (Navbar)
-- [ ] Badge de contador
-- [ ] Marcar como lida
-- [ ] Desktop notifications
-- [ ] Áudio de notificação
+- [x] Dropdown de notificações (Navbar)
+- [x] Badge de contador
+- [x] Marcar como lida
+- [x] Desktop notifications
+- [x] Áudio de notificação
 
 ---
 

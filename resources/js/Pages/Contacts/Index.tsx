@@ -194,7 +194,7 @@ export default function ContactsIndex({ contacts, tags, instances, filters }: Pr
                             <Badge
                                 key={tag.id}
                                 variant="default"
-                                size="sm"
+                                maxWidth="sm"
                                 style={{ backgroundColor: tag.color + '20', color: tag.color }}
                             >
                                 {tag.name}
@@ -204,7 +204,7 @@ export default function ContactsIndex({ contacts, tags, instances, filters }: Pr
                         <span className="text-xs text-dark-400">-</span>
                     )}
                     {contact.tags.length > 3 && (
-                        <Badge variant="default" size="sm">
+                        <Badge variant="default" maxWidth="sm">
                             +{contact.tags.length - 3}
                         </Badge>
                     )}
@@ -216,9 +216,9 @@ export default function ContactsIndex({ contacts, tags, instances, filters }: Pr
             label: 'Status',
             render: (contact: Contact) => (
                 contact.is_blocked ? (
-                    <Badge variant="danger" size="sm">Bloqueado</Badge>
+                    <Badge variant="danger" maxWidth="sm">Bloqueado</Badge>
                 ) : (
-                    <Badge variant="success" size="sm">Ativo</Badge>
+                    <Badge variant="success" maxWidth="sm">Ativo</Badge>
                 )
             ),
         },
@@ -499,10 +499,10 @@ export default function ContactsIndex({ contacts, tags, instances, filters }: Pr
 
             {/* Create Modal - Will implement in next step */}
             <Modal
-                isOpen={isCreateModalOpen}
+                show={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 title="Novo Contato"
-                size="lg"
+                maxWidth="lg"
             >
                 <p className="text-dark-600 dark:text-dark-400">Modal de criação será implementado na próxima etapa...</p>
             </Modal>
