@@ -27,15 +27,17 @@ class WhatsAppInstanceController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
-                'user_id' => 'required|exists:users,id',
             ]);
+
+            // Use authenticated user ID
+            $userId = $request->user()?->id ?? $request->input('user_id');
 
             $token = Str::random(32);
 
             $instance = WhatsAppInstance::create([
                 'name' => $validated['name'],
                 'token' => $token,
-                'user_id' => $validated['user_id'],
+                'user_id' => $userId,
                 'status' => 'disconnected',
                 'settings' => [
                     'webhook_url' => null,
@@ -46,7 +48,7 @@ class WhatsAppInstanceController extends Controller
             Log::info('WhatsApp instance created', [
                 'instance_id' => $instance->id,
                 'token' => $token,
-                'user_id' => $validated['user_id'],
+                'user_id' => $userId,
             ]);
 
             return response()->json([
