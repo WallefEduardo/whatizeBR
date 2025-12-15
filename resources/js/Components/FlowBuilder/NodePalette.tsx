@@ -31,10 +31,10 @@ const nodeDefinitions = [
 
 export default function NodePalette({ onAddNode }: NodePaletteProps) {
     return (
-        <div className="w-64 bg-white border-r border-gray-200 overflow-y-auto">
-            <div className="p-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Nós Disponíveis</h2>
-                <p className="text-sm text-gray-500 mt-1">Clique para adicionar ao fluxo</p>
+        <div className="w-64 bg-gray-800 border-r border-gray-700 overflow-y-auto">
+            <div className="p-4 border-b border-gray-700">
+                <h2 className="text-lg font-semibold text-gray-100">Nós Disponíveis</h2>
+                <p className="text-sm text-gray-400 mt-1">Clique para adicionar ao fluxo</p>
             </div>
 
             <div className="p-3 space-y-2">
@@ -42,13 +42,13 @@ export default function NodePalette({ onAddNode }: NodePaletteProps) {
                     <button
                         key={nodeDef.type}
                         onClick={() => onAddNode(nodeDef.type)}
-                        className="w-full flex items-start gap-3 p-3 bg-white border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all group"
+                        className="w-full flex items-start gap-3 p-3 bg-gray-750 border border-gray-700 hover:border-blue-500 hover:bg-gray-700 transition-all group"
                         style={{ borderRadius: '4px' }}
                     >
-                        <nodeDef.icon className="w-5 h-5 text-gray-400 group-hover:text-blue-600 flex-shrink-0 mt-0.5" style={{ color: '#737373' }} />
+                        <nodeDef.icon className="w-5 h-5 text-gray-400 group-hover:text-blue-400 flex-shrink-0 mt-0.5" />
                         <div className="flex-1 text-left">
-                            <div className="font-medium text-gray-900 text-sm">{nodeDef.label}</div>
-                            <div className="text-xs text-gray-500 mt-0.5">{nodeDef.description}</div>
+                            <div className="font-medium text-gray-100 text-sm">{nodeDef.label}</div>
+                            <div className="text-xs text-gray-400 mt-0.5">{nodeDef.description}</div>
                         </div>
                     </button>
                 ))}

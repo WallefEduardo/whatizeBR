@@ -1,100 +1,118 @@
-import { Link } from '@inertiajs/react'
-import { Wifi, Tag, FileText, User, Info, Users, Building2 } from 'lucide-react'
+import { useState } from 'react'
+import { router, usePage } from '@inertiajs/react'
+import { Settings, Wifi, Bell, Code } from 'lucide-react'
 import AppLayout from '@/Layouts/AppLayout'
+import Tabs from '@/Components/UI/Tabs'
+import Button from '@/Components/UI/Button'
+import { SettingsData, WhatsAppInstance } from '@/types'
+import GeneralTab from './Tabs/GeneralTab'
+import WhatsAppTab from './Tabs/WhatsAppTab'
+import NotificationsTab from './Tabs/NotificationsTab'
+import ApiConfigTab from './Tabs/ApiConfigTab'
 
-interface SettingsCategory {
-    title: string
-    items: {
-        name: string
-        href: string
-        icon: React.ComponentType<{ className?: string }>
-    }[]
+interface SettingsIndexProps {
+    settings: SettingsData
+    instances: WhatsAppInstance[]
+    currentInstanceId: string | null
 }
 
-const settingsCategories: SettingsCategory[] = [
-    {
-        title: 'CATEGORIAS',
-        items: [
-            { name: 'Conexão', href: '/connections', icon: Wifi },
-            { name: 'Etiquetas', href: '/tags', icon: Tag },
-            { name: 'Campos personalizados', href: '/custom-fields', icon: FileText },
-            { name: 'Informações', href: '/settings/info', icon: Info },
-            { name: 'Membros', href: '/members', icon: Users },
-            { name: 'Departamentos', href: '/departments', icon: Building2 },
-        ]
-    },
-    {
-        title: 'PERSONALIZAR',
-        items: [
-            { name: 'Minha Conta', href: '/profile', icon: User },
-        ]
-    }
-]
-
 export default function SettingsIndex() {
-    const currentPath = window.location.pathname
+    const { settings, instances, currentInstanceId } = usePage<SettingsIndexProps>().props
+    const [activeTab, setActiveTab] = useState('general')
+    const [isSaving, setIsSaving] = useState(false)
+
+    const handleSave = (formData: Record<string, any>) => {
+        setIsSaving(true)
+
+        const settingsArray = Object.entries(formData).map(([key, value]) => {
+            const setting = settings[key as keyof SettingsData]
+            return {
+                key,
+                value,
+                type: setting?.type || 'string',
+            }
+        })
+
+        router.post(
+            '/settings/bulk',
+            {
+                instance_id: currentInstanceId,
+                settings: settingsArray,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setIsSaving(false)
+                },
+                onError: () => {
+                    setIsSaving(false)
+                },
+            }
+        )
+    }
 
     return (
         <AppLayout title="Configurações">
-            <div className="flex h-full">
-                {/* Sidebar de Configurações */}
-                <aside className="w-80 bg-white dark:bg-dark-800 border-r border-dark-200 dark:border-dark-700 overflow-y-auto">
-                    <div className="p-6">
+            <div className="max-w-6xl mx-auto p-6">
+                {/* Header */}
+                <div className="mb-6">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 rounded bg-primary-100 dark:bg-primary-900/20 flex items-center justify-center">
+                            <Settings className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+                        </div>
                         <h1 className="text-2xl font-bold text-dark-900 dark:text-dark-50">
                             Configurações
                         </h1>
                     </div>
+                    <p className="text-sm text-dark-500">
+                        Gerencie as configurações do sistema
+                    </p>
+                </div>
 
-                    <nav className="px-3 pb-4">
-                        {settingsCategories.map((category, idx) => (
-                            <div key={idx} className="mb-6">
-                                <h2 className="px-3 mb-2 text-xs font-semibold text-dark-500 uppercase tracking-wider">
-                                    {category.title}
-                                </h2>
-                                <div className="space-y-1">
-                                    {category.items.map((item) => {
-                                        const Icon = item.icon
-                                        const isActive = currentPath === item.href
+                {/* Tabs */}
+                <Tabs defaultValue="general" onChange={setActiveTab}>
+                    <Tabs.List className="mb-6 w-full flex">
+                        <Tabs.Trigger value="general" className="flex items-center gap-2">
+                            <Settings className="w-4 h-4" />
+                            Geral
+                        </Tabs.Trigger>
+                        <Tabs.Trigger value="whatsapp" className="flex items-center gap-2">
+                            <Wifi className="w-4 h-4" />
+                            WhatsApp
+                        </Tabs.Trigger>
+                        <Tabs.Trigger value="notifications" className="flex items-center gap-2">
+                            <Bell className="w-4 h-4" />
+                            Notificações
+                        </Tabs.Trigger>
+                        <Tabs.Trigger value="api" className="flex items-center gap-2">
+                            <Code className="w-4 h-4" />
+                            API Config
+                        </Tabs.Trigger>
+                    </Tabs.List>
 
-                                        return (
-                                            <Link
-                                                key={item.name}
-                                                href={item.href}
-                                                className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                                                    isActive
-                                                        ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400'
-                                                        : 'text-dark-700 dark:text-dark-300 hover:bg-dark-50 dark:hover:bg-dark-700/50'
-                                                }`}
-                                            >
-                                                <Icon className="w-5 h-5 text-dark-400" />
-                                                {item.name}
-                                            </Link>
-                                        )
-                                    })}
-                                </div>
-                            </div>
-                        ))}
-                    </nav>
-                </aside>
+                    {/* Tab Contents */}
+                    <Tabs.Content value="general">
+                        <GeneralTab settings={settings} onSave={handleSave} isSaving={isSaving} />
+                    </Tabs.Content>
 
-                {/* Conteúdo Principal */}
-                <main className="flex-1 overflow-y-auto bg-dark-50 dark:bg-dark-900">
-                    <div className="p-8">
-                        <div className="max-w-4xl">
-                            <div className="bg-white dark:bg-dark-800 rounded border border-dark-200 dark:border-dark-700 p-8 text-center">
-                                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-dark-100 dark:bg-dark-700 flex items-center justify-center">
-                                    <FileText className="w-8 h-8 text-dark-400" />
-                                </div>
-                                <h2 className="text-xl font-semibold text-dark-900 dark:text-dark-50 mb-2">
-                                    Selecione uma categoria
-                                </h2>
-                                <p className="text-dark-500">
-                                    Escolha uma opção no menu lateral para começar
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </main>
+                    <Tabs.Content value="whatsapp">
+                        <WhatsAppTab
+                            settings={settings}
+                            instances={instances}
+                            currentInstanceId={currentInstanceId}
+                            onSave={handleSave}
+                            isSaving={isSaving}
+                        />
+                    </Tabs.Content>
+
+                    <Tabs.Content value="notifications">
+                        <NotificationsTab settings={settings} onSave={handleSave} isSaving={isSaving} />
+                    </Tabs.Content>
+
+                    <Tabs.Content value="api">
+                        <ApiConfigTab settings={settings} onSave={handleSave} isSaving={isSaving} />
+                    </Tabs.Content>
+                </Tabs>
             </div>
         </AppLayout>
     )

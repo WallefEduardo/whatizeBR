@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import FlowBuilder from '@/Components/FlowBuilder/FlowBuilder';
 import { Node, Edge } from '@xyflow/react';
 
@@ -86,37 +85,14 @@ export default function Builder({ auth, chatbot, flow }: Props) {
     };
 
     return (
-        <AuthenticatedLayout
-            user={auth.user}
-            header={
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                            Editor de Fluxo - {chatbot.name}
-                        </h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            {chatbot.description}
-                        </p>
-                    </div>
-                    <a
-                        href={route('chatbots.index')}
-                        className="px-4 py-2 bg-gray-600 text-white hover:bg-gray-700 transition-colors"
-                        style={{ borderRadius: '4px' }}
-                    >
-                        Voltar
-                    </a>
-                </div>
-            }
-        >
+        <>
             <Head title={`Editor de Fluxo - ${chatbot.name}`} />
 
-            <div className="h-[calc(100vh-64px)]">
-                <FlowBuilder
-                    initialNodes={initialNodes}
-                    initialEdges={initialEdges}
-                    onSave={handleSave}
-                />
-            </div>
+            <FlowBuilder
+                initialNodes={initialNodes}
+                initialEdges={initialEdges}
+                onSave={handleSave}
+            />
 
             {saving && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -125,6 +101,6 @@ export default function Builder({ auth, chatbot, flow }: Props) {
                     </div>
                 </div>
             )}
-        </AuthenticatedLayout>
+        </>
     );
 }

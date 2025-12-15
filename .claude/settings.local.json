@@ -19,7 +19,10 @@
       "Bash(php -m:*)",
       "Bash(npx vite build:*)",
       "Bash(grep:*)",
-      "Bash(php artisan config:publish:*)"
+      "Bash(php artisan config:publish:*)",
+      "Bash(php artisan make:migration:*)",
+      "Bash(php artisan migrate:*)",
+      "Bash(npm run build:*)"
     ]
   }
 }

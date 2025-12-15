@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import AppLayout from '@/Layouts/AppLayout';
 import {
     PlusIcon,
     PencilIcon,
@@ -15,18 +15,25 @@ interface Chatbot {
     description: string | null;
     trigger_type: 'keyword' | 'always' | 'business_hours' | 'custom';
     trigger_value: string | null;
+    instance_id: string | null;
     is_active: boolean;
     priority: number;
     flows_count: number;
     sessions_count: number;
 }
 
+interface WhatsAppInstance {
+    id: string;
+    name: string;
+}
+
 interface Props {
     auth: any;
     chatbots: Chatbot[];
+    instances: WhatsAppInstance[];
 }
 
-export default function Index({ auth, chatbots }: Props) {
+export default function Index({ auth, chatbots, instances }: Props) {
     const [showModal, setShowModal] = useState(false);
     const [editingChatbot, setEditingChatbot] = useState<Chatbot | null>(null);
 
@@ -64,29 +71,24 @@ export default function Index({ auth, chatbots }: Props) {
     };
 
     return (
-        <AuthenticatedLayout
-            user={auth.user}
-            header={
-                <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                        Chatbots
-                    </h2>
-                    <button
-                        onClick={handleCreate}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-                        style={{ borderRadius: '4px' }}
-                    >
-                        <PlusIcon className="w-5 h-5" />
-                        Novo Chatbot
-                    </button>
-                </div>
-            }
-        >
+        <AppLayout title="Chatbots">
             <Head title="Chatbots" />
 
-            <div className="py-6">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm dark:bg-gray-800" style={{ borderRadius: '4px' }}>
+            <div className="flex items-center justify-between mb-6">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    Chatbots
+                </h1>
+                <button
+                    onClick={handleCreate}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                    style={{ borderRadius: '4px' }}
+                >
+                    <PlusIcon className="w-5 h-5" />
+                    Novo Chatbot
+                </button>
+            </div>
+
+            <div className="overflow-hidden bg-white shadow-sm dark:bg-gray-800" style={{ borderRadius: '4px' }}>
                         {chatbots.length === 0 ? (
                             <div className="p-12 text-center">
                                 <p className="text-gray-500 dark:text-gray-400">
@@ -110,6 +112,9 @@ export default function Index({ auth, chatbots }: Props) {
                                             </th>
                                             <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                                 Gatilho
+                                            </th>
+                                            <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                                Instância
                                             </th>
                                             <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                                 Prioridade
@@ -151,6 +156,17 @@ export default function Index({ auth, chatbots }: Props) {
                                                         <div className="text-xs text-gray-500 dark:text-gray-400">
                                                             {chatbot.trigger_value}
                                                         </div>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    {chatbot.instance_id ? (
+                                                        <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" style={{ borderRadius: '4px' }}>
+                                                            Conectado
+                                                        </span>
+                                                    ) : (
+                                                        <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" style={{ borderRadius: '4px' }}>
+                                                            Sem instância
+                                                        </span>
                                                     )}
                                                 </td>
                                                 <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
@@ -204,44 +220,61 @@ export default function Index({ auth, chatbots }: Props) {
                                 </table>
                             </div>
                         )}
-                    </div>
-                </div>
             </div>
 
             {showModal && (
                 <ChatbotModal
                     chatbot={editingChatbot}
+                    instances={instances}
                     onClose={() => setShowModal(false)}
                 />
             )}
-        </AuthenticatedLayout>
+        </AppLayout>
     );
 }
 
 interface ChatbotModalProps {
     chatbot: Chatbot | null;
+    instances: WhatsAppInstance[];
     onClose: () => void;
 }
 
-function ChatbotModal({ chatbot, onClose }: ChatbotModalProps) {
+function ChatbotModal({ chatbot, instances, onClose }: ChatbotModalProps) {
     const [formData, setFormData] = useState({
         name: chatbot?.name || '',
         description: chatbot?.description || '',
         trigger_type: chatbot?.trigger_type || 'keyword',
         trigger_value: chatbot?.trigger_value || '',
+        instance_id: chatbot?.instance_id || '',
         priority: chatbot?.priority || 0,
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
+        console.log('🔵 Submitting chatbot:', formData);
+
         if (chatbot) {
+            console.log('🔵 Updating chatbot:', chatbot.id);
             router.put(route('chatbots.update', chatbot.id), formData, {
-                onSuccess: () => onClose(),
+                onSuccess: () => {
+                    console.log('✅ Update success');
+                    onClose();
+                },
+                onError: (errors) => {
+                    console.error('❌ Update error:', errors);
+                },
             });
         } else {
+            console.log('🔵 Creating new chatbot');
             router.post(route('chatbots.store'), formData, {
-                onSuccess: () => onClose(),
+                onSuccess: () => {
+                    console.log('✅ Create success');
+                    onClose();
+                },
+                onError: (errors) => {
+                    console.error('❌ Create error:', errors);
+                },
             });
         }
     };
@@ -319,6 +352,31 @@ function ChatbotModal({ chatbot, onClose }: ChatbotModalProps) {
                             />
                         </div>
                     )}
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Instância do WhatsApp
+                            <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">(Opcional)</span>
+                        </label>
+                        <select
+                            value={formData.instance_id}
+                            onChange={(e) =>
+                                setFormData({ ...formData, instance_id: e.target.value })
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            style={{ borderRadius: '4px' }}
+                        >
+                            <option value="">Sem instância (conectar depois)</option>
+                            {instances.map((instance) => (
+                                <option key={instance.id} value={instance.id}>
+                                    {instance.name}
+                                </option>
+                            ))}
+                        </select>
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            O chatbot precisa estar conectado a uma instância para ser ativado
+                        </p>
+                    </div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

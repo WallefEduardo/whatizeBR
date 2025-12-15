@@ -78,11 +78,23 @@ Route::middleware('auth')->group(function () {
     Route::resource('chatbot-flows', \App\Http\Controllers\ChatbotFlowController::class);
 
     // Settings
-    Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
+    Route::prefix('settings')->name('settings.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\SettingsController::class, 'index'])->name('index');
+        Route::get('/all', [\App\Http\Controllers\SettingsController::class, 'getAll'])->name('get-all');
+        Route::get('/{key}', [\App\Http\Controllers\SettingsController::class, 'get'])->name('get');
+        Route::post('/bulk', [\App\Http\Controllers\SettingsController::class, 'updateBulk'])->name('update-bulk');
+        Route::put('/{key}', [\App\Http\Controllers\SettingsController::class, 'update'])->name('update');
+        Route::delete('/{key}', [\App\Http\Controllers\SettingsController::class, 'destroy'])->name('destroy');
+        Route::post('/reset', [\App\Http\Controllers\SettingsController::class, 'reset'])->name('reset');
+    });
 
     // Custom Fields
     Route::resource('custom-fields', \App\Http\Controllers\CustomFieldController::class);
     Route::post('/custom-fields/update-order', [\App\Http\Controllers\CustomFieldController::class, 'updateOrder'])->name('custom-fields.update-order');
+
+    // Quick Replies
+    Route::resource('quick-replies', \App\Http\Controllers\QuickReplyController::class);
+    Route::get('/quick-replies-search', [\App\Http\Controllers\QuickReplyController::class, 'search'])->name('quick-replies.search');
 
     // Analytics
     Route::prefix('analytics')->name('analytics.')->group(function () {

@@ -18,8 +18,11 @@ class ChatbotController extends Controller
             ->byPriority()
             ->get();
 
+        $instances = \App\Models\WhatsAppInstance::all(['id', 'name']);
+
         return Inertia::render('Chatbots/Index', [
             'chatbots' => $chatbots,
+            'instances' => $instances,
         ]);
     }
 
@@ -29,18 +32,21 @@ class ChatbotController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'instance_id' => 'required|exists:instances,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'trigger_type' => 'required|in:keyword,always,business_hours,custom',
             'trigger_value' => 'nullable|string|max:255',
-            'is_active' => 'boolean',
+            'instance_id' => 'nullable|exists:whatsapp_instances,id',
             'priority' => 'integer|min:0|max:100',
         ]);
 
-        Chatbot::create($validated);
+        // Chatbot starts as inactive by default (will be activated when connected to instance)
+        Chatbot::create([
+            ...$validated,
+            'is_active' => false,
+        ]);
 
-        return redirect()->back();
+        return redirect()->route('chatbots.index');
     }
 
     /**
@@ -65,9 +71,17 @@ class ChatbotController extends Controller
             'description' => 'nullable|string',
             'trigger_type' => 'sometimes|in:keyword,always,business_hours,custom',
             'trigger_value' => 'nullable|string|max:255',
+            'instance_id' => 'nullable|exists:whatsapp_instances,id',
             'is_active' => 'boolean',
             'priority' => 'integer|min:0|max:100',
         ]);
+
+        // If trying to activate, ensure it's connected to an instance
+        if (isset($validated['is_active']) && $validated['is_active'] && !$chatbot->canActivate()) {
+            return redirect()->back()->withErrors([
+                'error' => 'O chatbot precisa estar conectado a uma instância e ter pelo menos um fluxo para ser ativado.',
+            ]);
+        }
 
         $chatbot->update($validated);
 
@@ -109,6 +123,13 @@ class ChatbotController extends Controller
      */
     public function toggle(Chatbot $chatbot)
     {
+        // If trying to activate, ensure it's connected to an instance
+        if (!$chatbot->is_active && !$chatbot->canActivate()) {
+            return redirect()->back()->withErrors([
+                'error' => 'O chatbot precisa estar conectado a uma instância e ter pelo menos um fluxo para ser ativado.',
+            ]);
+        }
+
         $chatbot->update([
             'is_active' => !$chatbot->is_active,
         ]);

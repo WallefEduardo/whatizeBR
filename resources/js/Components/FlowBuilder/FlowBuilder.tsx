@@ -127,7 +127,7 @@ export default function FlowBuilder({ initialNodes = [], initialEdges = [], onSa
     }, [nodes, edges, onSave]);
 
     return (
-        <div className="flex h-screen bg-gray-50">
+        <div className="flex h-screen bg-gray-900">
             {/* Node Palette Sidebar */}
             <NodePalette onAddNode={addNode} />
 
@@ -144,9 +144,9 @@ export default function FlowBuilder({ initialNodes = [], initialEdges = [], onSa
                     nodeTypes={nodeTypes}
                     fitView
                 >
-                    <Background />
+                    <Background color="#374151" />
                     <Controls />
-                    <MiniMap />
+                    <MiniMap nodeColor="#4B5563" maskColor="rgba(0, 0, 0, 0.6)" />
                 </ReactFlow>
 
                 {/* Toolbar */}
@@ -176,19 +176,19 @@ export default function FlowBuilder({ initialNodes = [], initialEdges = [], onSa
 
                 {/* Validation Panel */}
                 {showValidation && (
-                    <div className="absolute top-20 right-4 z-10 w-80 bg-white border border-gray-200 shadow-lg" style={{ borderRadius: '4px' }}>
-                        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                            <h3 className="font-semibold text-gray-900">Validação do Fluxo</h3>
+                    <div className="absolute top-20 right-4 z-10 w-80 bg-gray-800 border border-gray-700 shadow-lg" style={{ borderRadius: '4px' }}>
+                        <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+                            <h3 className="font-semibold text-gray-100">Validação do Fluxo</h3>
                             <button
                                 onClick={() => setShowValidation(false)}
-                                className="text-gray-400 hover:text-gray-600"
+                                className="text-gray-400 hover:text-gray-300"
                             >
                                 ✕
                             </button>
                         </div>
                         <div className="p-4 max-h-96 overflow-y-auto">
                             {validationErrors.length === 0 ? (
-                                <div className="flex items-center gap-2 text-green-600">
+                                <div className="flex items-center gap-2 text-green-400">
                                     <CheckCircleIcon className="w-5 h-5" />
                                     <span className="text-sm">Fluxo válido!</span>
                                 </div>
@@ -198,7 +198,7 @@ export default function FlowBuilder({ initialNodes = [], initialEdges = [], onSa
                                         <div
                                             key={index}
                                             className={`flex items-start gap-2 p-2 ${
-                                                error.type === 'error' ? 'bg-red-50 text-red-700' : 'bg-yellow-50 text-yellow-700'
+                                                error.type === 'error' ? 'bg-red-900/30 text-red-300' : 'bg-yellow-900/30 text-yellow-300'
                                             }`}
                                             style={{ borderRadius: '4px' }}
                                         >

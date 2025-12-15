@@ -2609,11 +2609,11 @@ class ConsumeWebhooksCommand extends Command
 - [x] FlowSimulator (teste de flow)
 
 #### 9.4 Frontend - Chatbot Management
-- [ ] Página de listagem de chatbots
-- [ ] Modal de criação de chatbot
-- [ ] Configuração de triggers (keyword, always, etc)
-- [ ] Toggle ativo/inativo
-- [ ] Prioridade de execução
+- [x] Página de listagem de chatbots
+- [x] Modal de criação de chatbot
+- [x] Configuração de triggers (keyword, always, etc)
+- [x] Toggle ativo/inativo
+- [x] Prioridade de execução
 
 ---
 
@@ -2648,56 +2648,56 @@ class ConsumeWebhooksCommand extends Command
 - [x] Cache de estatísticas (Redis)
 
 #### 11.2 Frontend - Dashboard
-- [ ] Layout de dashboard com grid responsivo
-- [ ] StatsCard component (cards de métricas)
-- [ ] ConversationsChart (gráfico de conversas por hora/dia)
-- [ ] ResponseTimeChart
-- [ ] AgentPerformance (tabela/gráfico)
-- [ ] RecentActivity (feed)
-- [ ] Filtro por período (hoje, 7 dias, 30 dias, custom)
+- [x] Layout de dashboard com grid responsivo
+- [x] StatsCard component (cards de métricas)
+- [x] ConversationsChart (gráfico de conversas por hora/dia)
+- [x] ResponseTimeChart
+- [x] AgentPerformance (tabela/gráfico)
+- [x] RecentActivity (feed)
+- [x] Filtro por período (hoje, 7 dias, 30 dias, custom)
 
 ---
 
 ### FASE 12: Configurações e API Config (Semana 17)
 
 #### 12.1 Backend
-- [ ] Criar migrations para settings
-- [ ] Model Setting
-- [ ] SettingsController
-- [ ] Configurações:
-  - [ ] Nome da empresa
-  - [ ] Logo
-  - [ ] Timezone
-  - [ ] Horário comercial
-  - [ ] Mensagem de boas-vindas
-  - [ ] Mensagem de ausência
-  - [ ] Auto-assign
-  - [ ] Max concurrent chats
-  - [ ] Webhook URLs
+- [x] Criar migrations para settings
+- [x] Model Setting
+- [x] SettingsController
+- [x] Configurações:
+  - [x] Nome da empresa
+  - [x] Logo
+  - [x] Timezone
+  - [x] Horário comercial
+  - [x] Mensagem de boas-vindas
+  - [x] Mensagem de ausência
+  - [x] Auto-assign
+  - [x] Max concurrent chats
+  - [x] Webhook URLs
 
 #### 12.2 Frontend - Settings
-- [ ] Página de configurações com Tabs
-- [ ] Tab General (nome, logo, etc)
-- [ ] Tab WhatsApp (instâncias, webhooks)
-- [ ] Tab Notificações
-- [ ] Tab API Config
-- [ ] Formulários de atualização
+- [x] Página de configurações com Tabs
+- [x] Tab General (nome, logo, etc)
+- [x] Tab WhatsApp (instâncias, webhooks)
+- [x] Tab Notificações
+- [x] Tab API Config
+- [x] Formulários de atualização
 
 ---
 
 ### FASE 13: Quick Replies (Semana 18)
 
 #### 13.1 Backend
-- [ ] Criar migrations para quick_replies
-- [ ] Model QuickReply
-- [ ] QuickReplyController
+- [x] Criar migrations para quick_replies
+- [x] Model QuickReply
+- [x] QuickReplyController
 
 #### 13.2 Frontend
-- [ ] Página de gerenciamento de respostas rápidas
-- [ ] Modal de criação/edição
-- [ ] Atalho no input (/ para abrir menu)
-- [ ] Busca por shortcut
-- [ ] Preview de mensagem
+- [x] Página de gerenciamento de respostas rápidas
+- [x] Modal de criação/edição
+- [x] Atalho no input (/ para abrir menu)
+- [x] Busca por shortcut
+- [x] Preview de mensagem
 
 ---
 

@@ -32,7 +32,23 @@ class Chatbot extends Model
      */
     public function instance(): BelongsTo
     {
-        return $this->belongsTo(Instance::class);
+        return $this->belongsTo(WhatsAppInstance::class);
+    }
+
+    /**
+     * Check if the chatbot is connected to an instance.
+     */
+    public function isConnected(): bool
+    {
+        return !is_null($this->instance_id);
+    }
+
+    /**
+     * Check if the chatbot can be activated.
+     */
+    public function canActivate(): bool
+    {
+        return $this->isConnected() && $this->flows()->exists();
     }
 
     /**
