@@ -2428,11 +2428,11 @@ class ConsumeWebhooksCommand extends Command
 - [x] Job MarkMessageAsRead
 
 #### 4.4 Frontend - Contatos
-- [ ] Página de listagem de contatos
-- [ ] Barra de busca e filtros
-- [ ] Modal de criação/edição de contato
-- [ ] Página de detalhes do contato
-- [ ] Integração com custom fields
+- [x] Página de listagem de contatos
+- [x] Barra de busca e filtros
+- [x] Modal de criação/edição de contato
+- [x] Página de detalhes do contato
+- [x] Integração com custom fields
 
 #### 4.5 Frontend - Chat ao Vivo
 - [ ] Layout split: Lista de conversas + Janela de chat
