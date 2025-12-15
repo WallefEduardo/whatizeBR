@@ -2417,15 +2417,15 @@ class ConsumeWebhooksCommand extends Command
 - [x] Contador de não lidas
 
 #### 4.3 Backend - Mensagens
-- [ ] Criar migrations para messages
-- [ ] Criar Model Message
-- [ ] Jobs para envio de mensagens:
-  - [ ] SendWhatsAppTextMessage
-  - [ ] SendWhatsAppMediaMessage
-  - [ ] SendWhatsAppButtonMessage
-  - [ ] SendWhatsAppListMessage
-- [ ] Job ProcessIncomingMessage
-- [ ] Job MarkMessageAsRead
+- [x] Criar migrations para messages
+- [x] Criar Model Message
+- [x] Jobs para envio de mensagens:
+  - [x] SendWhatsAppTextMessage
+  - [x] SendWhatsAppMediaMessage
+  - [x] SendWhatsAppButtonMessage
+  - [x] SendWhatsAppListMessage
+- [x] Job ProcessIncomingMessage
+- [x] Job MarkMessageAsRead
 
 #### 4.4 Frontend - Contatos
 - [ ] Página de listagem de contatos
