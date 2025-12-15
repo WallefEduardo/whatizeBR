@@ -4,6 +4,12 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
+// Fix for DotenvVault not loading .env properly
+if (class_exists(\Dotenv\Dotenv::class)) {
+    $dotenv = \Dotenv\Dotenv::createUnsafeImmutable(dirname(__DIR__));
+    $dotenv->safeLoad();
+}
+
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
