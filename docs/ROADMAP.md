@@ -2401,20 +2401,20 @@ class ConsumeWebhooksCommand extends Command
 ### FASE 4: Contatos e Conversas (Semana 6-7)
 
 #### 4.1 Backend - Contatos
-- [ ] Criar migrations para contacts
-- [ ] Criar Model Contact com relacionamentos
-- [ ] Criar ContactController (CRUD)
-- [ ] Implementar busca full-text
-- [ ] Implementar filtros (tags, departamento)
-- [ ] Job para sincronizar contatos do WhatsApp
+- [x] Criar migrations para contacts
+- [x] Criar Model Contact com relacionamentos
+- [x] Criar ContactController (CRUD)
+- [x] Implementar busca full-text
+- [x] Implementar filtros (tags, departamento)
+- [x] Job para sincronizar contatos do WhatsApp
 
 #### 4.2 Backend - Conversas
-- [ ] Criar migrations para conversations
-- [ ] Criar Model Conversation
-- [ ] Criar ConversationController
-- [ ] Implementar listagem com paginação
-- [ ] Filtros (status, atendente, departamento, tags)
-- [ ] Contador de não lidas
+- [x] Criar migrations para conversations
+- [x] Criar Model Conversation
+- [x] Criar ConversationController
+- [x] Implementar listagem com paginação
+- [x] Filtros (status, atendente, departamento, tags)
+- [x] Contador de não lidas
 
 #### 4.3 Backend - Mensagens
 - [ ] Criar migrations para messages

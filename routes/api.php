@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\WhatsAppInstanceController;
+use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\TagController;
 use Illuminate\Support\Facades\Route;
 
@@ -40,4 +41,10 @@ Route::middleware('auth:sanctum')->prefix('tags')->group(function () {
     Route::post('/', [TagController::class, 'store'])->name('tags.store');
     Route::patch('/{id}', [TagController::class, 'update'])->name('tags.update');
     Route::delete('/{id}', [TagController::class, 'destroy'])->name('tags.destroy');
+});
+
+// Conversations Stats Routes
+Route::middleware('auth:sanctum')->prefix('conversations')->group(function () {
+    Route::get('/stats', [ConversationController::class, 'stats'])->name('conversations.stats');
+    Route::get('/unread-count', [ConversationController::class, 'unreadCount'])->name('conversations.unread-count');
 });
