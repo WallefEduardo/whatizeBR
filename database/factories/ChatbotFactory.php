@@ -20,7 +20,7 @@ class ChatbotFactory extends Factory
         $triggerType = fake()->randomElement($triggerTypes);
 
         return [
-            'instance_id' => \App\Models\Instance::factory(),
+            'instance_id' => \App\Models\WhatsAppInstance::factory(),
             'name' => fake()->words(3, true),
             'description' => fake()->sentence(),
             'trigger_type' => $triggerType,

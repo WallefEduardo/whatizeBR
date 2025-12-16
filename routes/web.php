@@ -59,6 +59,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/members/{member}/toggle', [\App\Http\Controllers\MemberController::class, 'toggle'])->name('members.toggle');
     Route::get('/members/{member}/stats', [\App\Http\Controllers\MemberController::class, 'stats'])->name('members.stats');
 
+    // Users
+    Route::resource('users', \App\Http\Controllers\UserController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::post('/users/{user}/toggle', [\App\Http\Controllers\UserController::class, 'toggle'])->name('users.toggle');
+
     // Schedules
     Route::resource('schedules', \App\Http\Controllers\ScheduleController::class);
     Route::post('/schedules/{schedule}/cancel', [\App\Http\Controllers\ScheduleController::class, 'cancel'])->name('schedules.cancel');

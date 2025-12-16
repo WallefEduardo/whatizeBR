@@ -23,17 +23,22 @@ class ConversationController extends Controller
     {
         $user = Auth::user();
 
-        // Get all user's instances IDs
-        $instanceIds = WhatsAppInstance::where('user_id', $user->id)->pluck('id');
+        // ✅ OTIMIZADO: Cache instanceIds
+        $instanceIds = cache()->remember(
+            "user_{$user->id}_instances",
+            300,
+            fn() => WhatsAppInstance::where('user_id', $user->id)->pluck('id')
+        );
 
-        // Build query with eager loading
-        $query = Conversation::with([
-            'contact',
-            'assignedUser:id,name,email',
-            'department:id,name',
-            'tags:id,name,color',
-            'lastMessage:id,content,type,created_at',
-        ])
+        // ✅ OTIMIZADO: Eager loading apenas campos necessários
+        $query = Conversation::select('conversations.*')
+            ->with([
+                'contact:id,name,phone,avatar,instance_id',
+                'assignedUser:id,name,email,avatar',
+                'department:id,name,color',
+                'tags:id,name,color',
+                'lastMessage:id,conversation_id,content,type,created_at,status',
+            ])
             ->whereIn('instance_id', $instanceIds)
             ->latestMessages();
 
@@ -79,28 +84,49 @@ class ConversationController extends Controller
             $query->searchContact($request->search);
         }
 
-        // Paginate results
-        $conversations = $query->paginate(20)->withQueryString();
+        // ✅ OTIMIZADO: Cursor pagination para melhor performance
+        $conversations = $query->cursorPaginate(50)->withQueryString();
 
-        // Get filter options
-        $departments = Department::where('user_id', $user->id)
-            ->orderBy('name')
-            ->get(['id', 'name']);
+        // ✅ OTIMIZADO: Cache filter options
+        $departments = cache()->remember(
+            "user_{$user->id}_departments",
+            300,
+            fn() => Department::where('user_id', $user->id)
+                ->orderBy('name')
+                ->get(['id', 'name', 'color'])
+        );
 
-        $tags = Tag::where('user_id', $user->id)
-            ->orderBy('name')
-            ->get(['id', 'name', 'color']);
+        $tags = cache()->remember(
+            "user_{$user->id}_tags",
+            300,
+            fn() => Tag::where('user_id', $user->id)
+                ->orderBy('name')
+                ->get(['id', 'name', 'color'])
+        );
 
-        $instances = WhatsAppInstance::where('user_id', $user->id)
-            ->orderBy('name')
-            ->get(['id', 'name']);
+        $instances = cache()->remember(
+            "user_{$user->id}_instances_list",
+            300,
+            fn() => WhatsAppInstance::where('user_id', $user->id)
+                ->orderBy('name')
+                ->get(['id', 'name'])
+        );
 
-        $teamMembers = User::where('id', '!=', $user->id)
-            ->orderBy('name')
-            ->get(['id', 'name', 'email']);
+        $teamMembers = cache()->remember(
+            "user_{$user->id}_team_members",
+            300,
+            fn() => User::where('id', '!=', $user->id)
+                ->orderBy('name')
+                ->get(['id', 'name', 'email', 'avatar'])
+        );
 
-        // Get conversation stats
-        $stats = $this->getConversationStats($instanceIds);
+        // ✅ OTIMIZADO: Cache stats com chave incluindo filtros
+        $filterKey = md5(json_encode($request->only(['status', 'assigned_to', 'department_id'])));
+        $stats = cache()->remember(
+            "conversation_stats_{$user->id}_{$filterKey}",
+            60, // 1 minuto para stats
+            fn() => $this->getConversationStats($instanceIds)
+        );
 
         return Inertia::render('Conversations/Index', [
             'conversations' => $conversations,
@@ -127,18 +153,28 @@ class ConversationController extends Controller
     public function show(string $id): Response
     {
         $user = Auth::user();
-        $instanceIds = WhatsAppInstance::where('user_id', $user->id)->pluck('id');
 
-        $conversation = Conversation::with([
-            'contact',
-            'instance',
-            'assignedUser',
-            'department',
-            'tags',
-            'messages' => function ($query) {
-                $query->orderBy('created_at', 'asc')->limit(100);
-            },
-        ])
+        // ✅ OTIMIZADO: Cache instanceIds
+        $instanceIds = cache()->remember(
+            "user_{$user->id}_instances",
+            300,
+            fn() => WhatsAppInstance::where('user_id', $user->id)->pluck('id')
+        );
+
+        // ✅ OTIMIZADO: Eager loading apenas campos necessários
+        $conversation = Conversation::select('conversations.*')
+            ->with([
+                'contact:id,name,phone,avatar,instance_id,email',
+                'instance:id,name,phone,status',
+                'assignedUser:id,name,email,avatar',
+                'department:id,name,color',
+                'tags:id,name,color',
+                'messages' => function ($query) {
+                    $query->select('id', 'conversation_id', 'content', 'type', 'direction', 'status', 'created_at', 'from_phone', 'to_phone')
+                        ->orderBy('created_at', 'asc')
+                        ->limit(100);
+                },
+            ])
             ->whereIn('instance_id', $instanceIds)
             ->findOrFail($id);
 

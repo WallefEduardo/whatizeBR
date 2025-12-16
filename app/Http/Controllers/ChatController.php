@@ -14,25 +14,36 @@ class ChatController extends Controller
     {
         $user = $request->user();
 
-        $query = Conversation::with(['contact.tags', 'instance', 'lastMessage'])
+        // ✅ OTIMIZADO: Eager loading apenas campos necessários
+        $query = Conversation::query()
+            ->select('conversations.*')
+            ->with([
+                'contact:id,name,phone,avatar,whatsapp_instance_id',
+                'contact.tags:id,name,color',
+                'instance:id,name,phone,status',
+                'lastMessage:id,conversation_id,type,content,created_at,status'
+            ])
             ->where('assigned_to', $user->id)
             ->orderBy('last_message_at', 'desc');
 
-        // Paginação
-        $conversations = $query->paginate(50);
+        // ✅ OTIMIZADO: Usar cursor pagination para melhor performance
+        $conversations = $query->cursorPaginate(50);
 
-        // Stats por status
-        $stats = [
-            'open' => Conversation::where('assigned_to', $user->id)
-                ->where('status', 'open')
-                ->count(),
-            'pending' => Conversation::where('assigned_to', $user->id)
-                ->where('status', 'pending')
-                ->count(),
-            'closed' => Conversation::where('assigned_to', $user->id)
-                ->where('status', 'closed')
-                ->count(),
-        ];
+        // ✅ OTIMIZADO: Query única para todas as stats com cache
+        $stats = cache()->remember("chat_stats_{$user->id}", 60, function () use ($user) {
+            return Conversation::where('assigned_to', $user->id)
+                ->selectRaw('status, COUNT(*) as count')
+                ->groupBy('status')
+                ->pluck('count', 'status')
+                ->toArray();
+        });
+
+        // Garantir que todos os status existam
+        $stats = array_merge([
+            'open' => 0,
+            'pending' => 0,
+            'closed' => 0,
+        ], $stats);
 
         return Inertia::render('Chat/Index', [
             'conversations' => $conversations,

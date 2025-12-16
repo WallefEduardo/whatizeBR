@@ -22,8 +22,16 @@ class BroadcastController extends Controller
 
     public function index(Request $request)
     {
-        $query = Broadcast::with(['user', 'instance'])
-            ->where('instance_id', $request->user()->instance_id ?? Str::uuid()->toString());
+        $user = $request->user();
+        $instanceId = $user->instance_id ?? Str::uuid()->toString();
+
+        // ✅ OTIMIZADO: Eager loading apenas campos necessários
+        $query = Broadcast::select('broadcasts.*')
+            ->with([
+                'user:id,name,email,avatar',
+                'instance:id,name,phone'
+            ])
+            ->where('instance_id', $instanceId);
 
         // Filter by status
         if ($request->has('status') && $request->status !== 'all') {
@@ -45,10 +53,27 @@ class BroadcastController extends Controller
         $sortOrder = $request->input('sort_order', 'desc');
         $query->orderBy($sortBy, $sortOrder);
 
-        $broadcasts = $query->paginate(15)->withQueryString();
+        // ✅ OTIMIZADO: Cursor pagination para melhor performance
+        $broadcasts = $query->cursorPaginate(50)->withQueryString();
+
+        // ✅ OTIMIZADO: Cache stats por instância
+        $stats = cache()->remember(
+            "broadcast_stats_{$instanceId}",
+            300,
+            function() use ($instanceId) {
+                return [
+                    'total' => Broadcast::where('instance_id', $instanceId)->count(),
+                    'draft' => Broadcast::where('instance_id', $instanceId)->where('status', 'draft')->count(),
+                    'scheduled' => Broadcast::where('instance_id', $instanceId)->where('status', 'scheduled')->count(),
+                    'processing' => Broadcast::where('instance_id', $instanceId)->where('status', 'processing')->count(),
+                    'completed' => Broadcast::where('instance_id', $instanceId)->where('status', 'completed')->count(),
+                ];
+            }
+        );
 
         return Inertia::render('Broadcasts/Index', [
             'broadcasts' => $broadcasts,
+            'stats' => $stats,
             'filters' => [
                 'status' => $request->input('status', 'all'),
                 'message_type' => $request->input('message_type', 'all'),
@@ -125,10 +150,36 @@ class BroadcastController extends Controller
 
     public function show(Broadcast $broadcast)
     {
-        $broadcast->load(['user', 'instance', 'messages.contact']);
+        // ✅ OTIMIZADO: Eager loading apenas campos necessários
+        $broadcast->load([
+            'user:id,name,email,avatar',
+            'instance:id,name,phone',
+            'messages' => function ($query) {
+                $query->select('id', 'broadcast_id', 'contact_id', 'status', 'error_message', 'sent_at', 'delivered_at', 'read_at')
+                    ->with('contact:id,name,phone,avatar')
+                    ->latest()
+                    ->limit(100);
+            }
+        ]);
+
+        // ✅ OTIMIZADO: Cache stats do broadcast
+        $messageStats = cache()->remember(
+            "broadcast_{$broadcast->id}_message_stats",
+            60,
+            function() use ($broadcast) {
+                return [
+                    'total' => $broadcast->total_recipients,
+                    'sent' => $broadcast->messages()->where('status', 'sent')->count(),
+                    'delivered' => $broadcast->messages()->where('status', 'delivered')->count(),
+                    'read' => $broadcast->messages()->where('status', 'read')->count(),
+                    'failed' => $broadcast->messages()->where('status', 'failed')->count(),
+                ];
+            }
+        );
 
         return Inertia::render('Broadcasts/Show', [
             'broadcast' => $broadcast,
+            'messageStats' => $messageStats,
         ]);
     }
 

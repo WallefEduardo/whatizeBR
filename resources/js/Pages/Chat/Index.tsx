@@ -212,7 +212,8 @@ export default function ChatIndex({ conversations, selectedConversation, message
         <AppLayout title="Chat ao Vivo">
             <div className="-m-6 h-[calc(100vh-4rem)] flex">
                 {/* Lista de Conversas - Sidebar Esquerda */}
-                <div className="w-96 bg-white dark:bg-dark-800 border-r border-dark-200 dark:border-dark-700 flex flex-col">
+                {/* Mobile: Mostra só lista OU conversa. Desktop: Mostra ambas */}
+                <div className={`w-full md:w-96 bg-white dark:bg-dark-800 border-r border-dark-200 dark:border-dark-700 flex flex-col ${selectedConversation ? 'hidden md:flex' : 'flex'}`}>
                     {/* Header da Lista */}
                     <div className="p-4 border-b border-dark-200 dark:border-dark-700">
                         <h1 className="text-xl font-bold text-dark-900 dark:text-dark-50 mb-4">
@@ -345,12 +346,22 @@ export default function ChatIndex({ conversations, selectedConversation, message
                 </div>
 
                 {/* Janela de Chat - Central */}
-                <div className="flex-1 flex flex-col bg-dark-50 dark:bg-dark-900">
+                {/* Mobile: Tela cheia quando tem conversa selecionada. Desktop: Sempre visível */}
+                <div className={`flex-1 flex flex-col bg-dark-50 dark:bg-dark-900 ${!selectedConversation ? 'hidden md:flex' : 'flex'}`}>
                     {selectedConversation ? (
                         <>
                             {/* Header do Chat */}
                             <div className="bg-white dark:bg-dark-800 border-b border-dark-200 dark:border-dark-700 p-4 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
+                                    {/* Botão Voltar (apenas mobile) */}
+                                    <button
+                                        onClick={() => router.visit('/chat')}
+                                        className="md:hidden p-2 -ml-2 hover:bg-dark-100 dark:hover:bg-dark-700 rounded transition-colors"
+                                    >
+                                        <svg className="w-5 h-5 text-dark-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                        </svg>
+                                    </button>
                                     {/* Avatar */}
                                     <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/20 flex items-center justify-center">
                                         {selectedConversation.contact.avatar_url ? (
@@ -379,12 +390,12 @@ export default function ChatIndex({ conversations, selectedConversation, message
 
                                 {/* Actions */}
                                 <div className="flex items-center gap-2">
-                                    <button className="p-2 hover:bg-dark-100 dark:hover:bg-dark-700 rounded transition-colors">
+                                    <button className="hidden md:block p-2 hover:bg-dark-100 dark:hover:bg-dark-700 rounded transition-colors">
                                         <Phone className="w-5 h-5 text-dark-500" />
                                     </button>
                                     <button
                                         onClick={() => setShowContactPanel(!showContactPanel)}
-                                        className="p-2 hover:bg-dark-100 dark:hover:bg-dark-700 rounded transition-colors"
+                                        className="hidden md:block p-2 hover:bg-dark-100 dark:hover:bg-dark-700 rounded transition-colors"
                                     >
                                         <User className="w-5 h-5 text-dark-500" />
                                     </button>
@@ -533,8 +544,9 @@ export default function ChatIndex({ conversations, selectedConversation, message
                 </div>
 
                 {/* Painel de Contato - Sidebar Direita */}
+                {/* Apenas desktop */}
                 {selectedConversation && showContactPanel && (
-                    <div className="w-80 bg-white dark:bg-dark-800 border-l border-dark-200 dark:border-dark-700 overflow-y-auto">
+                    <div className="hidden md:block w-80 bg-white dark:bg-dark-800 border-l border-dark-200 dark:border-dark-700 overflow-y-auto">
                         <div className="p-4 border-b border-dark-200 dark:border-dark-700 flex items-center justify-between">
                             <h3 className="font-semibold text-dark-900 dark:text-dark-50">
                                 Detalhes do Contato

@@ -28,7 +28,23 @@
       "Bash(php artisan migrate:status:*)",
       "Bash(dir)",
       "Bash(go mod init:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(composer require:*)",
+      "Bash(chmod:*)",
+      "Bash(vendor/bin/phpunit:*)",
+      "Bash(php artisan make:factory:*)",
+      "Bash(npm run test:run:*)",
+      "Bash(php:*)",
+      "Bash(go get:*)",
+      "Bash(/c/Program Files/Go/bin/go.exe test:*)",
+      "Bash(powershell.exe -Command \"go test -v ./pkg/retry/...\")",
+      "Bash(php artisan vendor:publish:*)",
+      "Bash(php artisan pwa:install:*)",
+      "Bash(powershell.exe -Command \"go test -v ./pkg/retry/... 2>&1 | Select-String -Pattern ''TestRetrier_SuccessAfterRetries'' -Context 5\")",
+      "Bash(powershell.exe -Command \"go test ./pkg/retry/...\")",
+      "Bash(powershell.exe -Command \"cd ''C:\\xampp\\htdocs\\apiGoBR''; go test -v ./internal/application/replica/...\")",
+      "Bash(powershell.exe -Command \"cd ''C:\\xampp\\htdocs\\apiGoBR''; go test -v -short ./internal/infrastructure/whatsapp/...\")",
+      "Bash(powershell.exe -Command \"cd ''C:\\xampp\\htdocs\\apiGoBR''; go test -v ./pkg/retry/...\")"
     ]
   }
 }

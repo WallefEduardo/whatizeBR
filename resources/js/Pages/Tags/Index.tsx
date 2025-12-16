@@ -8,7 +8,7 @@ import TableActions from '@/Components/UI/Table/TableActions'
 import ConfirmDialog from '@/Components/UI/ConfirmDialog'
 import ColorPicker from '@/Components/UI/ColorPicker'
 import { useConfirm } from '@/Hooks/useConfirm'
-import { Plus, Tag as TagIcon } from 'lucide-react'
+import { Plus, Tag as TagIcon, Edit2, Trash2 } from 'lucide-react'
 
 interface Tag {
   id: number
@@ -166,10 +166,22 @@ export default function TagsIndex({ tags }: Props) {
       label: 'Ações',
       width: '100px',
       render: (tag: Tag) => (
-        <TableActions
-          onEdit={() => handleEdit(tag)}
-          onDelete={() => handleDelete(tag)}
-        />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => handleEdit(tag)}
+            className="p-1.5 rounded hover:bg-dark-100 dark:hover:bg-dark-700 transition-colors"
+            title="Editar"
+          >
+            <Edit2 className="w-4 h-4 text-dark-500 dark:text-white" />
+          </button>
+          <button
+            onClick={() => handleDelete(tag)}
+            className="p-1.5 rounded hover:bg-dark-100 dark:hover:bg-dark-700 transition-colors"
+            title="Deletar"
+          >
+            <Trash2 className="w-4 h-4 text-dark-500 dark:text-white" />
+          </button>
+        </div>
       ),
     },
   ]

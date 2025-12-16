@@ -33,8 +33,6 @@ const navigation: NavItem[] = [
     { name: 'Chatbots', href: '/chatbots', icon: Bot },
     { name: 'Agendamentos', href: '/schedules', icon: Calendar },
     { name: 'Transmissões', href: '/broadcasts', icon: Send },
-    { name: 'Departamentos', href: '/departments', icon: Building2, roles: ['admin', 'supervisor'] },
-    { name: 'Tags', href: '/tags', icon: Tag, roles: ['admin', 'supervisor'] },
     { name: 'Configurações', href: '/settings', icon: Settings, roles: ['admin'] },
 ];
 

@@ -22,11 +22,19 @@ class ContactController extends Controller
     {
         $user = Auth::user();
 
-        // Get all user's instances IDs
-        $instanceIds = WhatsAppInstance::where('user_id', $user->id)->pluck('id');
+        // ✅ OTIMIZADO: Cache instanceIds para evitar query repetida
+        $instanceIds = cache()->remember(
+            "user_{$user->id}_instances",
+            300, // 5 minutos
+            fn() => WhatsAppInstance::where('user_id', $user->id)->pluck('id')
+        );
 
-        // Build query
-        $query = Contact::with(['instance', 'tags'])
+        // ✅ OTIMIZADO: Eager loading apenas campos necessários
+        $query = Contact::select('contacts.*')
+            ->with([
+                'instance:id,name,phone',
+                'tags:id,name,color'
+            ])
             ->whereIn('instance_id', $instanceIds)
             ->orderBy('last_interaction_at', 'desc')
             ->orderBy('created_at', 'desc');
@@ -52,16 +60,25 @@ class ContactController extends Controller
             $query->forInstance($request->instance_id);
         }
 
-        // Paginate results
-        $contacts = $query->paginate(20)->withQueryString();
+        // ✅ OTIMIZADO: Usar cursor pagination para melhor performance
+        $contacts = $query->cursorPaginate(50)->withQueryString();
 
-        // Get user's tags for filters
-        $tags = Tag::where('user_id', $user->id)->orderBy('name')->get();
+        // ✅ OTIMIZADO: Cache tags e instances para evitar queries repetidas
+        $tags = cache()->remember(
+            "user_{$user->id}_tags",
+            300,
+            fn() => Tag::where('user_id', $user->id)
+                ->orderBy('name')
+                ->get(['id', 'name', 'color'])
+        );
 
-        // Get user's instances for filters
-        $instances = WhatsAppInstance::where('user_id', $user->id)
-            ->orderBy('name')
-            ->get(['id', 'name']);
+        $instances = cache()->remember(
+            "user_{$user->id}_instances_list",
+            300,
+            fn() => WhatsAppInstance::where('user_id', $user->id)
+                ->orderBy('name')
+                ->get(['id', 'name'])
+        );
 
         return Inertia::render('Contacts/Index', [
             'contacts' => $contacts,
@@ -165,11 +182,25 @@ class ContactController extends Controller
     public function show(string $id): Response
     {
         $user = Auth::user();
-        $instanceIds = WhatsAppInstance::where('user_id', $user->id)->pluck('id');
 
-        $contact = Contact::with(['instance', 'tags', 'messages' => function ($query) {
-            $query->orderBy('created_at', 'desc')->limit(50);
-        }])
+        // ✅ OTIMIZADO: Usar instanceIds cacheados
+        $instanceIds = cache()->remember(
+            "user_{$user->id}_instances",
+            300,
+            fn() => WhatsAppInstance::where('user_id', $user->id)->pluck('id')
+        );
+
+        // ✅ OTIMIZADO: Eager loading otimizado com campos específicos
+        $contact = Contact::select('contacts.*')
+            ->with([
+                'instance:id,name,phone',
+                'tags:id,name,color',
+                'messages' => function ($query) {
+                    $query->select('id', 'contact_id', 'content', 'type', 'direction', 'status', 'created_at')
+                        ->orderBy('created_at', 'desc')
+                        ->limit(50);
+                }
+            ])
             ->whereIn('instance_id', $instanceIds)
             ->findOrFail($id);
 

@@ -2736,26 +2736,1627 @@ class ConsumeWebhooksCommand extends Command
 
 ### FASE 16: Testes e Otimização (Semana 21-22)
 
-#### 16.1 Testes Backend
-- [ ] Unit tests para Services
-- [ ] Feature tests para Controllers
-- [ ] Testes de Jobs
-- [ ] Testes de Webhooks
-- [ ] Testes de rate limiting
+> **IMPORTANTE**: Todos os testes devem ser escritos ANTES de criar a API Go, usando Fakes/Mocks do Laravel para simular integrações externas. Isso garante que o Laravel funciona 100% antes de adicionar complexidade.
 
-#### 16.2 Testes Frontend
-- [ ] Testes de componentes (Vitest + React Testing Library)
-- [ ] Testes E2E (Playwright)
+---
 
-#### 16.3 Otimização
-- [ ] Lazy loading de rotas
-- [ ] Code splitting
-- [ ] Otimização de queries (N+1)
-- [ ] Eager loading
-- [ ] Índices de banco
-- [ ] Cache de queries pesadas
-- [ ] Compressão de assets
-- [ ] CDN para arquivos estáticos
+#### 16.1 Testes Backend (Laravel + PHPUnit)
+
+##### 16.1.1 Configuração Inicial
+
+**Instalar dependências de teste:**
+```bash
+composer require --dev pestphp/pest pestphp/pest-plugin-laravel
+php artisan pest:install
+```
+
+**Criar arquivo de configuração `phpunit.xml` (já existe, verificar):**
+```xml
+<phpunit>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory suffix="Test.php">./tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory suffix="Test.php">./tests/Feature</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <env name="DB_DATABASE" value=":memory:"/>
+        <env name="CACHE_DRIVER" value="array"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+    </php>
+</phpunit>
+```
+
+**Criar traits reutilizáveis:**
+```php
+// tests/Traits/WithFakeWhatsApp.php
+<?php
+
+namespace Tests\Traits;
+
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
+
+trait WithFakeWhatsApp
+{
+    protected function fakeWhatsAppAPI(): void
+    {
+        Http::fake([
+            'whatsapp-api/*' => Http::response([
+                'status' => 'sent',
+                'message_id' => 'wamid.test123',
+            ], 200),
+        ]);
+    }
+
+    protected function fakeRabbitMQ(): void
+    {
+        Queue::fake();
+    }
+}
+```
+
+---
+
+##### 16.1.2 Unit Tests para Services
+
+**OBJETIVO**: Testar lógica de negócio isolada, sem depender de banco de dados ou APIs externas.
+
+**Estrutura de arquivos:**
+```
+tests/Unit/Services/
+├── WhatsAppServiceTest.php
+├── ChatbotServiceTest.php
+├── BroadcastServiceTest.php
+├── MediaServiceTest.php
+└── RateLimiterServiceTest.php
+```
+
+**Exemplo 1: WhatsAppServiceTest.php**
+```php
+<?php
+
+namespace Tests\Unit\Services;
+
+use App\Services\WhatsAppService;
+use Illuminate\Support\Facades\Http;
+use Tests\TestCase;
+
+class WhatsAppServiceTest extends TestCase
+{
+    protected WhatsAppService $service;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->service = new WhatsAppService();
+    }
+
+    /** @test */
+    public function it_can_format_phone_number_correctly()
+    {
+        // Testa formatação de telefone
+        $phone = $this->service->formatPhone('(85) 99999-9999');
+
+        $this->assertEquals('5585999999999', $phone);
+    }
+
+    /** @test */
+    public function it_validates_message_content_length()
+    {
+        $longMessage = str_repeat('a', 5000);
+
+        $this->assertFalse($this->service->validateMessageLength($longMessage));
+        $this->assertTrue($this->service->validateMessageLength('Hello World'));
+    }
+
+    /** @test */
+    public function it_builds_correct_text_message_payload()
+    {
+        $payload = $this->service->buildTextMessagePayload(
+            to: '5585999999999',
+            message: 'Test message'
+        );
+
+        $this->assertArrayHasKey('to', $payload);
+        $this->assertArrayHasKey('type', $payload);
+        $this->assertArrayHasKey('text', $payload);
+        $this->assertEquals('text', $payload['type']);
+    }
+
+    /** @test */
+    public function it_can_parse_webhook_payload()
+    {
+        $webhookData = [
+            'message_id' => 'wamid.123',
+            'from' => '5585999999999',
+            'type' => 'text',
+            'text' => ['body' => 'Hello'],
+        ];
+
+        $parsed = $this->service->parseWebhookMessage($webhookData);
+
+        $this->assertEquals('wamid.123', $parsed['message_id']);
+        $this->assertEquals('text', $parsed['type']);
+        $this->assertEquals('Hello', $parsed['content']);
+    }
+}
+```
+
+**Exemplo 2: ChatbotServiceTest.php**
+```php
+<?php
+
+namespace Tests\Unit\Services;
+
+use App\Services\ChatbotService;
+use App\Models\Chatbot;
+use App\Models\ChatbotFlow;
+use Tests\TestCase;
+
+class ChatbotServiceTest extends TestCase
+{
+    /** @test */
+    public function it_can_match_trigger_keyword()
+    {
+        $chatbot = Chatbot::factory()->create([
+            'trigger_type' => 'keyword',
+            'trigger_value' => 'oi|olá|hey',
+        ]);
+
+        $service = new ChatbotService();
+
+        $this->assertTrue($service->matchesTrigger($chatbot, 'oi'));
+        $this->assertTrue($service->matchesTrigger($chatbot, 'Olá'));
+        $this->assertTrue($service->matchesTrigger($chatbot, 'HEY'));
+        $this->assertFalse($service->matchesTrigger($chatbot, 'tchau'));
+    }
+
+    /** @test */
+    public function it_processes_node_variables_correctly()
+    {
+        $service = new ChatbotService();
+
+        $message = 'Olá {{name}}, seu pedido {{order_id}} está pronto!';
+        $variables = ['name' => 'João', 'order_id' => '12345'];
+
+        $processed = $service->processVariables($message, $variables);
+
+        $this->assertEquals('Olá João, seu pedido 12345 está pronto!', $processed);
+    }
+
+    /** @test */
+    public function it_evaluates_condition_node_correctly()
+    {
+        $service = new ChatbotService();
+
+        $node = [
+            'type' => 'condition',
+            'conditions' => [
+                ['variable' => 'age', 'operator' => '>', 'value' => 18],
+            ],
+        ];
+
+        $variables = ['age' => 25];
+
+        $this->assertTrue($service->evaluateCondition($node, $variables));
+
+        $variables = ['age' => 15];
+
+        $this->assertFalse($service->evaluateCondition($node, $variables));
+    }
+}
+```
+
+**Exemplo 3: RateLimiterServiceTest.php**
+```php
+<?php
+
+namespace Tests\Unit\Services;
+
+use App\Services\RateLimiterService;
+use Illuminate\Support\Facades\Cache;
+use Tests\TestCase;
+
+class RateLimiterServiceTest extends TestCase
+{
+    protected RateLimiterService $service;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->service = new RateLimiterService();
+        Cache::flush();
+    }
+
+    /** @test */
+    public function it_allows_messages_within_rate_limit()
+    {
+        $contactPhone = '5585999999999';
+
+        // 10 mensagens por minuto é o limite
+        for ($i = 0; $i < 10; $i++) {
+            $this->assertTrue($this->service->canSendMessage($contactPhone));
+        }
+    }
+
+    /** @test */
+    public function it_blocks_messages_exceeding_rate_limit()
+    {
+        $contactPhone = '5585999999999';
+
+        // Envia 10 mensagens (limite)
+        for ($i = 0; $i < 10; $i++) {
+            $this->service->canSendMessage($contactPhone);
+        }
+
+        // 11ª mensagem deve ser bloqueada
+        $this->assertFalse($this->service->canSendMessage($contactPhone));
+    }
+
+    /** @test */
+    public function it_resets_limit_after_time_window()
+    {
+        $contactPhone = '5585999999999';
+
+        // Preenche o limite
+        for ($i = 0; $i < 10; $i++) {
+            $this->service->canSendMessage($contactPhone);
+        }
+
+        // Avança o tempo em 61 segundos
+        $this->travel(61)->seconds();
+
+        // Deve permitir novamente
+        $this->assertTrue($this->service->canSendMessage($contactPhone));
+    }
+}
+```
+
+**Checklist de Unit Tests:**
+- [ ] WhatsAppService: formatação, validação, build de payloads
+- [ ] ChatbotService: triggers, variáveis, condições, fluxos
+- [ ] BroadcastService: filtros, segmentação, scheduling
+- [ ] MediaService: validação de tipo/tamanho, upload, download
+- [ ] RateLimiterService: limites por contato, limite global, reset
+
+---
+
+##### 16.1.3 Feature Tests para Controllers
+
+**OBJETIVO**: Testar rotas HTTP completas, incluindo autenticação, validação, e resposta JSON.
+
+**Usar Fakes para simular APIs externas:**
+```php
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Event;
+```
+
+**Estrutura de arquivos:**
+```
+tests/Feature/Controllers/
+├── ChatControllerTest.php
+├── ContactControllerTest.php
+├── BroadcastControllerTest.php
+├── ChatbotControllerTest.php
+├── ConnectionControllerTest.php
+└── WebhookControllerTest.php
+```
+
+**Exemplo 1: ChatControllerTest.php**
+```php
+<?php
+
+namespace Tests\Feature\Controllers;
+
+use App\Models\User;
+use App\Models\Conversation;
+use App\Models\Message;
+use App\Models\Contact;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
+use Tests\TestCase;
+
+class ChatControllerTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected User $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->user = User::factory()->create();
+
+        // Fake WhatsApp API
+        Http::fake([
+            'whatsapp-api/*' => Http::response([
+                'status' => 'sent',
+                'message_id' => 'wamid.test123',
+            ], 200),
+        ]);
+
+        Queue::fake();
+    }
+
+    /** @test */
+    public function it_can_send_text_message()
+    {
+        $conversation = Conversation::factory()->create();
+
+        $response = $this->actingAs($this->user)
+            ->postJson('/api/messages/send', [
+                'conversation_id' => $conversation->id,
+                'type' => 'text',
+                'content' => 'Hello World',
+            ]);
+
+        $response->assertStatus(201);
+        $response->assertJsonStructure([
+            'data' => [
+                'id',
+                'conversation_id',
+                'type',
+                'content',
+                'status',
+                'created_at',
+            ],
+        ]);
+
+        // Verifica que o job foi despachado
+        Queue::assertPushed(\App\Jobs\SendWhatsAppTextMessage::class);
+
+        // Verifica que a mensagem foi salva no banco
+        $this->assertDatabaseHas('messages', [
+            'conversation_id' => $conversation->id,
+            'content' => 'Hello World',
+            'type' => 'text',
+            'direction' => 'outbound',
+        ]);
+    }
+
+    /** @test */
+    public function it_validates_message_content_is_required()
+    {
+        $conversation = Conversation::factory()->create();
+
+        $response = $this->actingAs($this->user)
+            ->postJson('/api/messages/send', [
+                'conversation_id' => $conversation->id,
+                'type' => 'text',
+                'content' => '', // vazio
+            ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['content']);
+    }
+
+    /** @test */
+    public function it_can_list_conversations()
+    {
+        Conversation::factory()->count(5)->create();
+
+        $response = $this->actingAs($this->user)
+            ->getJson('/api/conversations');
+
+        $response->assertStatus(200);
+        $response->assertJsonCount(5, 'data');
+    }
+
+    /** @test */
+    public function it_can_filter_conversations_by_status()
+    {
+        Conversation::factory()->count(3)->create(['status' => 'open']);
+        Conversation::factory()->count(2)->create(['status' => 'closed']);
+
+        $response = $this->actingAs($this->user)
+            ->getJson('/api/conversations?status=open');
+
+        $response->assertStatus(200);
+        $response->assertJsonCount(3, 'data');
+    }
+
+    /** @test */
+    public function it_can_mark_message_as_read()
+    {
+        $message = Message::factory()->create(['status' => 'delivered']);
+
+        $response = $this->actingAs($this->user)
+            ->putJson("/api/messages/{$message->id}/read");
+
+        $response->assertStatus(200);
+
+        $this->assertDatabaseHas('messages', [
+            'id' => $message->id,
+            'status' => 'read',
+        ]);
+
+        $this->assertNotNull($message->fresh()->read_at);
+    }
+
+    /** @test */
+    public function unauthorized_user_cannot_send_messages()
+    {
+        $conversation = Conversation::factory()->create();
+
+        $response = $this->postJson('/api/messages/send', [
+            'conversation_id' => $conversation->id,
+            'type' => 'text',
+            'content' => 'Hello',
+        ]);
+
+        $response->assertStatus(401);
+    }
+}
+```
+
+**Exemplo 2: BroadcastControllerTest.php**
+```php
+<?php
+
+namespace Tests\Feature\Controllers;
+
+use App\Models\User;
+use App\Models\Broadcast;
+use App\Models\Contact;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
+use Tests\TestCase;
+
+class BroadcastControllerTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected User $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->user = User::factory()->create();
+        Queue::fake();
+    }
+
+    /** @test */
+    public function it_can_create_broadcast()
+    {
+        Contact::factory()->count(10)->create();
+
+        $response = $this->actingAs($this->user)
+            ->postJson('/api/broadcasts', [
+                'name' => 'Promoção Black Friday',
+                'message_type' => 'text',
+                'message_content' => 'Aproveite 50% OFF!',
+                'filters' => [
+                    'tags' => ['vip', 'ativo'],
+                ],
+            ]);
+
+        $response->assertStatus(201);
+
+        $this->assertDatabaseHas('broadcasts', [
+            'name' => 'Promoção Black Friday',
+            'status' => 'draft',
+        ]);
+    }
+
+    /** @test */
+    public function it_can_schedule_broadcast()
+    {
+        $broadcast = Broadcast::factory()->create(['status' => 'draft']);
+
+        $scheduledAt = now()->addHours(2);
+
+        $response = $this->actingAs($this->user)
+            ->putJson("/api/broadcasts/{$broadcast->id}/schedule", [
+                'scheduled_at' => $scheduledAt->toIso8601String(),
+            ]);
+
+        $response->assertStatus(200);
+
+        $this->assertDatabaseHas('broadcasts', [
+            'id' => $broadcast->id,
+            'status' => 'scheduled',
+        ]);
+    }
+
+    /** @test */
+    public function it_dispatches_jobs_when_sending_broadcast()
+    {
+        $broadcast = Broadcast::factory()->create([
+            'status' => 'scheduled',
+            'total_recipients' => 100,
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->postJson("/api/broadcasts/{$broadcast->id}/send");
+
+        $response->assertStatus(200);
+
+        Queue::assertPushed(\App\Jobs\SendBroadcastMessage::class);
+    }
+}
+```
+
+**Exemplo 3: WebhookControllerTest.php**
+```php
+<?php
+
+namespace Tests\Feature\Controllers;
+
+use App\Models\WhatsAppInstance;
+use App\Models\Conversation;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Event;
+use Tests\TestCase;
+
+class WebhookControllerTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected WhatsAppInstance $instance;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->instance = WhatsAppInstance::factory()->create([
+            'webhook_secret' => 'test-secret-key',
+        ]);
+
+        Queue::fake();
+        Event::fake();
+    }
+
+    /** @test */
+    public function it_can_process_incoming_text_message_webhook()
+    {
+        $payload = [
+            'instance_token' => $this->instance->token,
+            'event' => 'message.received',
+            'data' => [
+                'message_id' => 'wamid.incoming123',
+                'from' => '5585999999999',
+                'to' => '5585988888888',
+                'type' => 'text',
+                'text' => ['body' => 'Olá, preciso de ajuda'],
+                'timestamp' => now()->timestamp,
+            ],
+        ];
+
+        $response = $this->postJson('/api/webhooks/whatsapp', $payload);
+
+        $response->assertStatus(200);
+
+        // Verifica que o job foi despachado
+        Queue::assertPushed(\App\Jobs\ProcessIncomingMessage::class);
+
+        // Verifica que a conversa foi criada
+        $this->assertDatabaseHas('conversations', [
+            'instance_id' => $this->instance->id,
+        ]);
+
+        // Verifica que a mensagem foi salva
+        $this->assertDatabaseHas('messages', [
+            'message_id' => 'wamid.incoming123',
+            'content' => 'Olá, preciso de ajuda',
+            'direction' => 'inbound',
+        ]);
+    }
+
+    /** @test */
+    public function it_rejects_webhook_with_invalid_signature()
+    {
+        $payload = [
+            'instance_token' => 'invalid-token',
+            'event' => 'message.received',
+            'data' => [],
+        ];
+
+        $response = $this->postJson('/api/webhooks/whatsapp', $payload);
+
+        $response->assertStatus(401);
+    }
+
+    /** @test */
+    public function it_can_process_message_status_update()
+    {
+        $message = \App\Models\Message::factory()->create([
+            'message_id' => 'wamid.test456',
+            'status' => 'sent',
+        ]);
+
+        $payload = [
+            'instance_token' => $this->instance->token,
+            'event' => 'message.status',
+            'data' => [
+                'message_id' => 'wamid.test456',
+                'status' => 'read',
+                'timestamp' => now()->timestamp,
+            ],
+        ];
+
+        $response = $this->postJson('/api/webhooks/whatsapp', $payload);
+
+        $response->assertStatus(200);
+
+        $this->assertDatabaseHas('messages', [
+            'message_id' => 'wamid.test456',
+            'status' => 'read',
+        ]);
+    }
+}
+```
+
+**Checklist de Feature Tests:**
+- [ ] ChatController: enviar mensagens (text, media, button, list), listar conversas, filtros, marcar como lida
+- [ ] ContactController: CRUD de contatos, importação CSV, busca, custom fields
+- [ ] BroadcastController: criar, agendar, enviar, cancelar, relatório
+- [ ] ChatbotController: CRUD de chatbots, ativar/desativar, testar fluxo
+- [ ] ConnectionController: gerar QR code, verificar status, desconectar
+- [ ] WebhookController: mensagens recebidas, status updates, validação de assinatura
+
+---
+
+##### 16.1.4 Testes de Jobs (Queue)
+
+**OBJETIVO**: Testar que os Jobs executam corretamente e fazem chamadas corretas às APIs.
+
+**Estrutura de arquivos:**
+```
+tests/Feature/Jobs/
+├── SendWhatsAppTextMessageTest.php
+├── SendWhatsAppMediaMessageTest.php
+├── ProcessIncomingMessageTest.php
+├── ProcessChatbotFlowTest.php
+└── SendBroadcastMessageTest.php
+```
+
+**Exemplo: SendWhatsAppTextMessageTest.php**
+```php
+<?php
+
+namespace Tests\Feature\Jobs;
+
+use App\Jobs\SendWhatsAppTextMessage;
+use App\Models\Message;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
+use Tests\TestCase;
+
+class SendWhatsAppTextMessageTest extends TestCase
+{
+    use RefreshDatabase;
+
+    /** @test */
+    public function it_sends_text_message_via_rabbitmq()
+    {
+        // Fake da API
+        Http::fake([
+            'whatsapp-api/*' => Http::response([
+                'status' => 'sent',
+                'message_id' => 'wamid.sent789',
+            ], 200),
+        ]);
+
+        $message = Message::factory()->create([
+            'type' => 'text',
+            'content' => 'Test message',
+            'to_phone' => '5585999999999',
+            'status' => 'pending',
+        ]);
+
+        // Executa o job
+        $job = new SendWhatsAppTextMessage($message);
+        $job->handle();
+
+        // Verifica que a requisição HTTP foi feita
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), 'whatsapp-api') &&
+                   $request['type'] === 'text' &&
+                   $request['content'] === 'Test message';
+        });
+
+        // Verifica que o status foi atualizado
+        $this->assertDatabaseHas('messages', [
+            'id' => $message->id,
+            'status' => 'sent',
+            'message_id' => 'wamid.sent789',
+        ]);
+    }
+
+    /** @test */
+    public function it_handles_api_failure_gracefully()
+    {
+        // Simula falha na API
+        Http::fake([
+            'whatsapp-api/*' => Http::response([
+                'error' => 'Rate limit exceeded',
+            ], 429),
+        ]);
+
+        $message = Message::factory()->create([
+            'type' => 'text',
+            'content' => 'Test',
+            'status' => 'pending',
+        ]);
+
+        $job = new SendWhatsAppTextMessage($message);
+
+        try {
+            $job->handle();
+        } catch (\Exception $e) {
+            // Job deve lançar exceção para retry
+        }
+
+        // Verifica que o status foi marcado como failed
+        $this->assertDatabaseHas('messages', [
+            'id' => $message->id,
+            'status' => 'failed',
+        ]);
+    }
+
+    /** @test */
+    public function it_respects_rate_limiting()
+    {
+        // TODO: implementar teste de rate limiting
+        $this->markTestIncomplete();
+    }
+}
+```
+
+**Checklist de Job Tests:**
+- [ ] SendWhatsAppTextMessage: envia corretamente, trata erros, rate limit
+- [ ] SendWhatsAppMediaMessage: upload de mídia, validação, compressão
+- [ ] ProcessIncomingMessage: cria conversa, salva mensagem, notifica agente
+- [ ] ProcessChatbotFlow: executa fluxo, avalia condições, armazena variáveis
+- [ ] SendBroadcastMessage: envia em lote, rate limiting, relatório
+
+---
+
+##### 16.1.5 Testes de Webhooks e Rate Limiting
+
+**Verificar:**
+- [ ] Webhook validation (HMAC signature)
+- [ ] Rate limiting por contato (10 msg/min)
+- [ ] Rate limiting global (1000 msg/min)
+- [ ] Throttling de rotas públicas
+
+**Exemplo: RateLimitingTest.php**
+```php
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class RateLimitingTest extends TestCase
+{
+    use RefreshDatabase;
+
+    /** @test */
+    public function it_rate_limits_api_requests()
+    {
+        $user = User::factory()->create();
+
+        // Faz 60 requisições (limite padrão do Laravel)
+        for ($i = 0; $i < 61; $i++) {
+            $response = $this->actingAs($user)
+                ->getJson('/api/conversations');
+
+            if ($i < 60) {
+                $response->assertStatus(200);
+            } else {
+                // 61ª requisição deve ser bloqueada
+                $response->assertStatus(429);
+            }
+        }
+    }
+}
+```
+
+---
+
+#### 16.2 Testes Frontend (React + Vitest + Playwright)
+
+##### 16.2.1 Configuração de Vitest + React Testing Library
+
+**Instalar dependências:**
+```bash
+npm install -D vitest @vitejs/plugin-react jsdom
+npm install -D @testing-library/react @testing-library/dom @testing-library/jest-dom
+npm install -D @testing-library/user-event
+```
+
+**Configurar `vitest.config.ts`:**
+```typescript
+import { defineConfig } from 'vitest/config'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./tests/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+    },
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './resources/js'),
+    },
+  },
+})
+```
+
+**Criar `tests/setup.ts`:**
+```typescript
+import '@testing-library/jest-dom'
+import { cleanup } from '@testing-library/react'
+import { afterEach } from 'vitest'
+
+afterEach(() => {
+  cleanup()
+})
+```
+
+**Adicionar scripts no `package.json`:**
+```json
+{
+  "scripts": {
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage"
+  }
+}
+```
+
+---
+
+##### 16.2.2 Testes de Componentes UI Base
+
+**Estrutura de arquivos:**
+```
+resources/js/__tests__/
+├── Components/
+│   ├── UI/
+│   │   ├── Button.test.tsx
+│   │   ├── Input.test.tsx
+│   │   ├── Modal.test.tsx
+│   │   └── Table.test.tsx
+│   ├── Chat/
+│   │   ├── MessageBubble.test.tsx
+│   │   ├── MessageInput.test.tsx
+│   │   └── ChatWindow.test.tsx
+│   └── Common/
+│       ├── SearchBar.test.tsx
+│       └── FilterPanel.test.tsx
+└── Hooks/
+    ├── useWebSocket.test.ts
+    └── useDebounce.test.ts
+```
+
+**Exemplo 1: Button.test.tsx**
+```tsx
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, it, expect, vi } from 'vitest'
+import Button from '@/Components/UI/Button'
+
+describe('Button Component', () => {
+  it('renders with correct text', () => {
+    render(<Button>Click me</Button>)
+
+    expect(screen.getByText('Click me')).toBeInTheDocument()
+  })
+
+  it('calls onClick handler when clicked', async () => {
+    const handleClick = vi.fn()
+    const user = userEvent.setup()
+
+    render(<Button onClick={handleClick}>Click me</Button>)
+
+    await user.click(screen.getByText('Click me'))
+
+    expect(handleClick).toHaveBeenCalledTimes(1)
+  })
+
+  it('applies primary variant styles', () => {
+    render(<Button variant="primary">Primary</Button>)
+
+    const button = screen.getByText('Primary')
+    expect(button).toHaveClass('bg-primary-500')
+  })
+
+  it('applies secondary variant styles', () => {
+    render(<Button variant="secondary">Secondary</Button>)
+
+    const button = screen.getByText('Secondary')
+    expect(button).toHaveClass('bg-dark-200')
+  })
+
+  it('is disabled when disabled prop is true', () => {
+    render(<Button disabled>Disabled</Button>)
+
+    const button = screen.getByText('Disabled')
+    expect(button).toBeDisabled()
+  })
+
+  it('shows loading spinner when isLoading is true', () => {
+    render(<Button isLoading>Loading</Button>)
+
+    // Verifica que o spinner está presente
+    expect(screen.getByRole('button')).toBeDisabled()
+  })
+
+  it('handles keyboard navigation', async () => {
+    const handleClick = vi.fn()
+    const user = userEvent.setup()
+
+    render(<Button onClick={handleClick}>Keyboard</Button>)
+
+    const button = screen.getByText('Keyboard')
+    button.focus()
+
+    await user.keyboard('{Enter}')
+    expect(handleClick).toHaveBeenCalled()
+  })
+})
+```
+
+**Exemplo 2: MessageBubble.test.tsx**
+```tsx
+import { render, screen } from '@testing-library/react'
+import { describe, it, expect } from 'vitest'
+import MessageBubble from '@/Components/Chat/MessageBubble'
+
+describe('MessageBubble Component', () => {
+  it('renders outbound message with correct styles', () => {
+    const message = {
+      id: '1',
+      content: 'Hello World',
+      direction: 'outbound',
+      type: 'text',
+      created_at: '2025-12-15T10:00:00Z',
+    }
+
+    render(<MessageBubble message={message} />)
+
+    const bubble = screen.getByText('Hello World')
+    expect(bubble).toBeInTheDocument()
+
+    // Mensagens outbound devem ter fundo verde
+    expect(bubble.closest('div')).toHaveClass('bg-primary-500')
+  })
+
+  it('renders inbound message with correct styles', () => {
+    const message = {
+      id: '2',
+      content: 'Hi there',
+      direction: 'inbound',
+      type: 'text',
+      created_at: '2025-12-15T10:01:00Z',
+    }
+
+    render(<MessageBubble message={message} />)
+
+    const bubble = screen.getByText('Hi there')
+
+    // Mensagens inbound devem ter fundo cinza
+    expect(bubble.closest('div')).toHaveClass('bg-dark-100')
+  })
+
+  it('renders media message with image', () => {
+    const message = {
+      id: '3',
+      type: 'image',
+      media_url: 'https://example.com/image.jpg',
+      caption: 'Check this out',
+      direction: 'inbound',
+      created_at: '2025-12-15T10:02:00Z',
+    }
+
+    render(<MessageBubble message={message} />)
+
+    expect(screen.getByRole('img')).toHaveAttribute('src', 'https://example.com/image.jpg')
+    expect(screen.getByText('Check this out')).toBeInTheDocument()
+  })
+
+  it('displays timestamp correctly', () => {
+    const message = {
+      id: '4',
+      content: 'Test',
+      direction: 'outbound',
+      type: 'text',
+      created_at: '2025-12-15T10:00:00Z',
+    }
+
+    render(<MessageBubble message={message} />)
+
+    expect(screen.getByText(/10:00/)).toBeInTheDocument()
+  })
+
+  it('shows status indicators for outbound messages', () => {
+    const message = {
+      id: '5',
+      content: 'Sent',
+      direction: 'outbound',
+      type: 'text',
+      status: 'read',
+      created_at: '2025-12-15T10:00:00Z',
+    }
+
+    render(<MessageBubble message={message} />)
+
+    // Deve mostrar ícone de "lido" (check duplo azul)
+    expect(screen.getByTestId('read-status')).toBeInTheDocument()
+  })
+})
+```
+
+**Exemplo 3: SearchBar.test.tsx**
+```tsx
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, it, expect, vi } from 'vitest'
+import SearchBar from '@/Components/Common/SearchBar'
+
+describe('SearchBar Component', () => {
+  it('calls onSearch after debounce delay', async () => {
+    const handleSearch = vi.fn()
+    const user = userEvent.setup()
+
+    render(<SearchBar onSearch={handleSearch} debounceMs={300} />)
+
+    const input = screen.getByPlaceholderText(/pesquisar/i)
+
+    await user.type(input, 'test query')
+
+    // Não deve chamar imediatamente
+    expect(handleSearch).not.toHaveBeenCalled()
+
+    // Aguarda o debounce
+    await new Promise(resolve => setTimeout(resolve, 350))
+
+    expect(handleSearch).toHaveBeenCalledWith('test query')
+  })
+
+  it('clears search when clear button is clicked', async () => {
+    const handleSearch = vi.fn()
+    const user = userEvent.setup()
+
+    render(<SearchBar onSearch={handleSearch} />)
+
+    const input = screen.getByPlaceholderText(/pesquisar/i)
+    await user.type(input, 'search term')
+
+    const clearButton = screen.getByRole('button', { name: /limpar/i })
+    await user.click(clearButton)
+
+    expect(input).toHaveValue('')
+    expect(handleSearch).toHaveBeenCalledWith('')
+  })
+})
+```
+
+**Checklist de Component Tests:**
+- [ ] Button: variantes, disabled, loading, onClick
+- [ ] Input: validação, máscaras, disabled, onChange
+- [ ] Modal: open/close, footer, sizes
+- [ ] Table: renderização de dados, sorting, paginação
+- [ ] MessageBubble: tipos de mensagem, direção, status
+- [ ] MessageInput: envio, anexos, emoji picker
+- [ ] SearchBar: debounce, clear, busca
+- [ ] FilterPanel: múltiplos filtros, reset
+
+---
+
+##### 16.2.3 Testes de Hooks Customizados
+
+**Exemplo: useDebounce.test.ts**
+```typescript
+import { renderHook, waitFor } from '@testing-library/react'
+import { describe, it, expect } from 'vitest'
+import { useDebounce } from '@/Hooks/useDebounce'
+
+describe('useDebounce Hook', () => {
+  it('debounces value changes', async () => {
+    const { result, rerender } = renderHook(
+      ({ value, delay }) => useDebounce(value, delay),
+      {
+        initialProps: { value: 'initial', delay: 500 },
+      }
+    )
+
+    expect(result.current).toBe('initial')
+
+    rerender({ value: 'updated', delay: 500 })
+
+    // Valor ainda não deve ter mudado imediatamente
+    expect(result.current).toBe('initial')
+
+    // Aguarda o debounce
+    await waitFor(() => expect(result.current).toBe('updated'), {
+      timeout: 600,
+    })
+  })
+})
+```
+
+---
+
+##### 16.2.4 Testes E2E com Playwright
+
+**Instalar Playwright:**
+```bash
+npm init playwright@latest
+```
+
+**Configurar `playwright.config.ts`:**
+```typescript
+import { defineConfig, devices } from '@playwright/test'
+
+export default defineConfig({
+  testDir: './tests/e2e',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: 'html',
+  use: {
+    baseURL: 'http://localhost:8000',
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+  },
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+  ],
+  webServer: {
+    command: 'php artisan serve',
+    url: 'http://localhost:8000',
+    reuseExistingServer: !process.env.CI,
+  },
+})
+```
+
+**Estrutura de testes E2E:**
+```
+tests/e2e/
+├── auth/
+│   ├── login.spec.ts
+│   └── register.spec.ts
+├── chat/
+│   ├── send-message.spec.ts
+│   ├── receive-message.spec.ts
+│   └── conversation-list.spec.ts
+├── contacts/
+│   ├── create-contact.spec.ts
+│   └── import-contacts.spec.ts
+└── broadcasts/
+    ├── create-broadcast.spec.ts
+    └── send-broadcast.spec.ts
+```
+
+**Exemplo 1: login.spec.ts**
+```typescript
+import { test, expect } from '@playwright/test'
+
+test.describe('Login Flow', () => {
+  test('should login successfully with valid credentials', async ({ page }) => {
+    await page.goto('/login')
+
+    await page.fill('input[name="email"]', 'admin@whatize.com')
+    await page.fill('input[name="password"]', 'password123')
+
+    await page.click('button[type="submit"]')
+
+    // Deve redirecionar para o dashboard
+    await expect(page).toHaveURL('/dashboard')
+
+    // Deve mostrar o nome do usuário
+    await expect(page.getByText('Admin User')).toBeVisible()
+  })
+
+  test('should show error with invalid credentials', async ({ page }) => {
+    await page.goto('/login')
+
+    await page.fill('input[name="email"]', 'wrong@example.com')
+    await page.fill('input[name="password"]', 'wrongpassword')
+
+    await page.click('button[type="submit"]')
+
+    // Deve mostrar mensagem de erro
+    await expect(page.getByText(/credenciais inválidas/i)).toBeVisible()
+  })
+
+  test('should validate required fields', async ({ page }) => {
+    await page.goto('/login')
+
+    await page.click('button[type="submit"]')
+
+    // Deve mostrar erros de validação
+    await expect(page.getByText(/e-mail é obrigatório/i)).toBeVisible()
+    await expect(page.getByText(/senha é obrigatória/i)).toBeVisible()
+  })
+})
+```
+
+**Exemplo 2: send-message.spec.ts**
+```typescript
+import { test, expect } from '@playwright/test'
+
+test.describe('Send Message', () => {
+  test.beforeEach(async ({ page }) => {
+    // Login antes de cada teste
+    await page.goto('/login')
+    await page.fill('input[name="email"]', 'admin@whatize.com')
+    await page.fill('input[name="password"]', 'password123')
+    await page.click('button[type="submit"]')
+    await page.waitForURL('/dashboard')
+  })
+
+  test('should send text message successfully', async ({ page }) => {
+    await page.goto('/chat')
+
+    // Seleciona uma conversa
+    await page.click('[data-testid="conversation-item"]:first-child')
+
+    // Digite uma mensagem
+    const messageInput = page.getByPlaceholder('Digite sua mensagem')
+    await messageInput.fill('Hello, this is a test message')
+
+    // Envia a mensagem
+    await page.click('[data-testid="send-button"]')
+
+    // Verifica que a mensagem aparece na conversa
+    await expect(page.getByText('Hello, this is a test message')).toBeVisible()
+
+    // Verifica que o input foi limpo
+    await expect(messageInput).toHaveValue('')
+  })
+
+  test('should send image message', async ({ page }) => {
+    await page.goto('/chat')
+    await page.click('[data-testid="conversation-item"]:first-child')
+
+    // Clica no botão de anexo
+    await page.click('[data-testid="attachment-button"]')
+
+    // Faz upload de imagem
+    const fileInput = page.locator('input[type="file"]')
+    await fileInput.setInputFiles('./tests/fixtures/test-image.jpg')
+
+    // Adiciona caption
+    await page.fill('[data-testid="caption-input"]', 'Check this image')
+
+    // Envia
+    await page.click('[data-testid="send-media-button"]')
+
+    // Verifica que a imagem aparece
+    await expect(page.getByRole('img', { name: /test-image/i })).toBeVisible()
+    await expect(page.getByText('Check this image')).toBeVisible()
+  })
+
+  test('should show typing indicator', async ({ page }) => {
+    await page.goto('/chat')
+    await page.click('[data-testid="conversation-item"]:first-child')
+
+    const messageInput = page.getByPlaceholder('Digite sua mensagem')
+
+    // Começa a digitar
+    await messageInput.fill('Typing...')
+
+    // Deve mostrar indicador de digitação para o contato (via WebSocket)
+    // Este teste requer mock do WebSocket ou ambiente real
+
+    await expect(page.getByText(/digitando.../i)).toBeVisible({ timeout: 2000 })
+  })
+})
+```
+
+**Exemplo 3: create-broadcast.spec.ts**
+```typescript
+import { test, expect } from '@playwright/test'
+
+test.describe('Create Broadcast', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/login')
+    await page.fill('input[name="email"]', 'admin@whatize.com')
+    await page.fill('input[name="password"]', 'password123')
+    await page.click('button[type="submit"]')
+    await page.waitForURL('/dashboard')
+  })
+
+  test('should create and schedule broadcast', async ({ page }) => {
+    await page.goto('/broadcasts')
+
+    // Clica em "Nova Campanha"
+    await page.click('button:has-text("Nova Campanha")')
+
+    // Preenche formulário
+    await page.fill('input[name="name"]', 'Black Friday Campaign')
+    await page.fill('textarea[name="message"]', 'Aproveite 50% OFF em tudo!')
+
+    // Seleciona filtros
+    await page.click('[data-testid="filter-tags"]')
+    await page.click('text=VIP')
+    await page.click('text=Ativo')
+
+    // Agenda para daqui a 2 horas
+    const scheduledDate = new Date()
+    scheduledDate.setHours(scheduledDate.getHours() + 2)
+
+    await page.fill('input[name="scheduled_at"]', scheduledDate.toISOString().slice(0, 16))
+
+    // Salva
+    await page.click('button:has-text("Agendar Campanha")')
+
+    // Verifica mensagem de sucesso
+    await expect(page.getByText(/campanha agendada com sucesso/i)).toBeVisible()
+
+    // Verifica que aparece na lista
+    await expect(page.getByText('Black Friday Campaign')).toBeVisible()
+    await expect(page.getByText('Agendada')).toBeVisible()
+  })
+})
+```
+
+**Checklist de E2E Tests:**
+- [ ] Login/Logout/Register flow
+- [ ] Enviar mensagens (text, image, video, document)
+- [ ] Receber mensagens (WebSocket)
+- [ ] Criar e editar contatos
+- [ ] Criar e enviar broadcasts
+- [ ] Criar e testar chatbots
+- [ ] Filtros e busca global
+- [ ] Notificações desktop
+
+---
+
+#### 16.3 Otimização de Performance
+
+##### 16.3.1 Frontend (React + Vite)
+
+**Lazy Loading de Rotas:**
+```typescript
+// resources/js/app.tsx
+import { lazy, Suspense } from 'react'
+
+const Dashboard = lazy(() => import('./Pages/Dashboard'))
+const Chat = lazy(() => import('./Pages/Chat/Index'))
+const Contacts = lazy(() => import('./Pages/Contacts/Index'))
+
+// Usar com Suspense
+<Suspense fallback={<LoadingSpinner />}>
+  <Dashboard />
+</Suspense>
+```
+
+**Code Splitting por Rota:**
+```typescript
+// vite.config.ts
+export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor': ['react', 'react-dom', '@inertiajs/react'],
+          'ui': ['lucide-react', '@headlessui/react'],
+          'charts': ['recharts'],
+          'flow': ['reactflow'],
+        },
+      },
+    },
+  },
+})
+```
+
+**Otimização de Componentes:**
+```tsx
+import { memo, useMemo, useCallback } from 'react'
+
+// Memoize componentes pesados
+export default memo(function MessageList({ messages }) {
+  const sortedMessages = useMemo(() => {
+    return messages.sort((a, b) => a.created_at - b.created_at)
+  }, [messages])
+
+  const handleClick = useCallback((id) => {
+    // ...
+  }, [])
+
+  return <div>{/* ... */}</div>
+})
+```
+
+**Checklist:**
+- [ ] Lazy loading de rotas principais
+- [ ] Code splitting (vendor, ui, charts, flow)
+- [ ] Memoização de componentes pesados
+- [ ] Virtual scrolling para listas longas (react-window)
+- [ ] Debounce em inputs de busca
+- [ ] Compressão de imagens antes do upload
+- [ ] Service Worker para cache (PWA)
+
+---
+
+##### 16.3.2 Backend (Laravel)
+
+**Otimização de Queries (N+1):**
+```php
+// ❌ RUIM (N+1)
+$conversations = Conversation::all();
+foreach ($conversations as $conversation) {
+    echo $conversation->contact->name; // Query por iteração
+}
+
+// ✅ BOM (Eager Loading)
+$conversations = Conversation::with('contact', 'lastMessage')->get();
+foreach ($conversations as $conversation) {
+    echo $conversation->contact->name; // Sem query adicional
+}
+```
+
+**Índices de Banco de Dados:**
+```php
+// Migration para adicionar índices
+Schema::table('messages', function (Blueprint $table) {
+    $table->index('conversation_id');
+    $table->index('created_at');
+    $table->index(['conversation_id', 'created_at']);
+    $table->fullText('content'); // Para busca full-text
+});
+```
+
+**Cache de Queries Pesadas:**
+```php
+use Illuminate\Support\Facades\Cache;
+
+// Cache por 1 hora
+$stats = Cache::remember('dashboard.stats', 3600, function () {
+    return [
+        'total_conversations' => Conversation::count(),
+        'open_conversations' => Conversation::where('status', 'open')->count(),
+        'messages_today' => Message::whereDate('created_at', today())->count(),
+    ];
+});
+```
+
+**Query Optimization:**
+```php
+// Use select() para buscar apenas colunas necessárias
+$contacts = Contact::select('id', 'name', 'phone')->get();
+
+// Use chunk() para processar grandes volumes
+Contact::chunk(100, function ($contacts) {
+    foreach ($contacts as $contact) {
+        // Processa em lotes de 100
+    }
+});
+
+// Use lazy() para iteração eficiente
+Contact::lazy()->each(function ($contact) {
+    // Carrega sob demanda
+});
+```
+
+**Checklist:**
+- [ ] Eager loading em todas as relações (with, load)
+- [ ] Índices em colunas de busca e foreign keys
+- [ ] Cache de queries pesadas (Redis)
+- [ ] Usar select() para limitar colunas
+- [ ] Usar chunk() ou lazy() para grandes volumes
+- [ ] Otimizar joins complexos
+- [ ] Monitorar queries lentas (Laravel Telescope)
+
+---
+
+##### 16.3.3 Compressão e CDN
+
+**Compressão de Assets (Vite):**
+```typescript
+// vite.config.ts
+import compression from 'vite-plugin-compression'
+
+export default defineConfig({
+  plugins: [
+    compression({
+      algorithm: 'gzip',
+      ext: '.gz',
+    }),
+    compression({
+      algorithm: 'brotliCompress',
+      ext: '.br',
+    }),
+  ],
+})
+```
+
+**Configurar CDN para Assets:**
+```php
+// config/app.php
+'asset_url' => env('ASSET_URL', null),
+
+// .env
+ASSET_URL=https://cdn.whatize.com.br
+```
+
+**Nginx Gzip:**
+```nginx
+# nginx.conf
+gzip on;
+gzip_vary on;
+gzip_types text/plain text/css application/json application/javascript text/xml application/xml image/svg+xml;
+gzip_min_length 1000;
+```
+
+**Checklist:**
+- [ ] Gzip/Brotli compression habilitado
+- [ ] Assets servidos via CDN
+- [ ] Imagens otimizadas (WebP, lazy loading)
+- [ ] Cache headers configurados
+- [ ] Minificação de JS/CSS
+
+---
+
+## 📚 Recursos e Referências
+
+### Artigos e Documentação:
+- [9 testing best practices for Laravel in 2025](https://benjamincrozat.com/laravel-testing-best-practices)
+- [Laravel Testing with Fakes/Mocks](https://medium.com/@thiagomrvieira/laravel-testing-mocking-faking-surviving-3bb394e83523)
+- [Laravel Mocking Documentation](https://laravel.com/docs/9.x/mocking)
+- [Vitest Component Testing Guide](https://vitest.dev/guide/browser/component-testing)
+- [React Testing with Vitest & RTL](https://vaskort.medium.com/bulletproof-react-testing-with-vitest-rtl-deeaabce9fef)
+- [Testing React Applications with Vitest](https://blog.incubyte.co/blog/vitest-react-testing-library-guide/)
+- [Playwright E2E Testing Guide 2025](https://www.deviqa.com/blog/guide-to-playwright-end-to-end-testing-in-2025/)
+- [Laravel Playwright Integration](https://github.com/hyvor/laravel-playwright)
+- [Inertia.js Testing Documentation](https://inertiajs.com/testing)
+
+### Comandos Úteis:
+
+```bash
+# Backend Tests
+php artisan test                    # Roda todos os testes
+php artisan test --filter=ChatControllerTest  # Roda teste específico
+php artisan test --coverage         # Com cobertura de código
+
+# Frontend Tests
+npm run test                        # Roda testes Vitest
+npm run test:ui                     # Interface visual
+npm run test:coverage               # Com cobertura
+
+# E2E Tests
+npx playwright test                 # Roda todos os testes E2E
+npx playwright test --ui            # Modo UI
+npx playwright test --debug         # Modo debug
+npx playwright codegen              # Gera código de teste
+```
+
+---
+
+**PRÓXIMA FASE**: Após completar todos os testes, seguir para [FASE 17: Deploy e DevOps](#fase-17-deploy-e-devops-semana-23-24)
 
 ---
 
@@ -2796,7 +4397,7 @@ class ConsumeWebhooksCommand extends Command
 - [ ] Templates de mensagem
 - [ ] Multi-idioma (i18n)
 - [ ] Modo de alta performance (virtualização de listas)
-- [ ] PWA (Progressive Web App)
+- [x] PWA (Progressive Web App)
 
 ### Prioridade Baixa
 - [ ] Integração com CRM externo (API REST)

@@ -15,26 +15,48 @@ class MemberController extends Controller
      */
     public function index()
     {
-        $members = Member::with(['user', 'department', 'instance'])
-            ->withCount('activeConversations')
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($member) {
-                return [
-                    'id' => $member->id,
-                    'user' => $member->user,
-                    'department' => $member->department,
-                    'instance' => $member->instance,
-                    'is_active' => $member->is_active,
-                    'max_concurrent_chats' => $member->max_concurrent_chats,
-                    'active_conversations_count' => $member->active_conversations_count,
-                    'available_slots' => $member->available_slots,
-                    'created_at' => $member->created_at,
-                ];
-            });
+        // ✅ OTIMIZADO: Eager loading apenas campos necessários + cache
+        $members = cache()->remember(
+            'members_list_with_stats',
+            120, // 2 minutos
+            function() {
+                return Member::select('members.*')
+                    ->with([
+                        'user:id,name,email,avatar',
+                        'department:id,name,color',
+                        'instance:id,name,phone'
+                    ])
+                    ->withCount('activeConversations')
+                    ->orderBy('created_at', 'desc')
+                    ->get()
+                    ->map(function ($member) {
+                        return [
+                            'id' => $member->id,
+                            'user' => $member->user,
+                            'department' => $member->department,
+                            'instance' => $member->instance,
+                            'is_active' => $member->is_active,
+                            'max_concurrent_chats' => $member->max_concurrent_chats,
+                            'active_conversations_count' => $member->active_conversations_count,
+                            'available_slots' => $member->available_slots,
+                            'created_at' => $member->created_at,
+                        ];
+                    });
+            }
+        );
 
-        $users = User::orderBy('name')->get(['id', 'name', 'email']);
-        $departments = Department::active()->orderBy('name')->get(['id', 'name', 'color']);
+        // ✅ OTIMIZADO: Cache listas de usuários e departamentos
+        $users = cache()->remember(
+            'users_for_members',
+            300,
+            fn() => User::orderBy('name')->get(['id', 'name', 'email', 'avatar'])
+        );
+
+        $departments = cache()->remember(
+            'active_departments',
+            300,
+            fn() => Department::active()->orderBy('name')->get(['id', 'name', 'color'])
+        );
 
         return Inertia::render('Members/Index', [
             'members' => $members,
@@ -75,7 +97,18 @@ class MemberController extends Controller
      */
     public function show(Member $member)
     {
-        $member->load(['user', 'department', 'instance', 'conversations']);
+        // ✅ OTIMIZADO: Eager loading apenas campos necessários
+        $member->load([
+            'user:id,name,email,avatar',
+            'department:id,name,color',
+            'instance:id,name,phone',
+            'conversations' => function($query) {
+                $query->select('conversations.id', 'conversations.contact_id', 'conversations.status', 'conversations.last_message_at')
+                    ->with('contact:id,name,phone,avatar')
+                    ->latest('last_message_at')
+                    ->limit(50);
+            }
+        ]);
 
         return Inertia::render('Members/Show', [
             'member' => $member,
@@ -132,15 +165,22 @@ class MemberController extends Controller
      */
     public function stats(Member $member)
     {
-        $stats = [
-            'total_conversations' => $member->conversations()->count(),
-            'active_conversations' => $member->activeConversations()->count(),
-            'closed_conversations' => $member->conversations()->where('status', 'closed')->count(),
-            'available_slots' => $member->available_slots,
-            'utilization_rate' => $member->max_concurrent_chats > 0
-                ? round(($member->active_conversations_count / $member->max_concurrent_chats) * 100, 2)
-                : 0,
-        ];
+        // ✅ OTIMIZADO: Cache stats do membro
+        $stats = cache()->remember(
+            "member_{$member->id}_stats",
+            60, // 1 minuto
+            function() use ($member) {
+                return [
+                    'total_conversations' => $member->conversations()->count(),
+                    'active_conversations' => $member->activeConversations()->count(),
+                    'closed_conversations' => $member->conversations()->where('status', 'closed')->count(),
+                    'available_slots' => $member->available_slots,
+                    'utilization_rate' => $member->max_concurrent_chats > 0
+                        ? round(($member->active_conversations_count / $member->max_concurrent_chats) * 100, 2)
+                        : 0,
+                ];
+            }
+        );
 
         return response()->json($stats);
     }

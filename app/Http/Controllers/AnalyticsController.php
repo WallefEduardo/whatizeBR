@@ -29,7 +29,18 @@ class AnalyticsController extends Controller
         $period = $validated['period'] ?? 'today';
         $instanceId = $request->user()->instance_id ?? Str::uuid()->toString();
 
-        $stats = $this->analyticsService->getDashboardStats($instanceId, $period);
+        // ✅ OTIMIZADO: Cache agressivo para analytics (dados mudam pouco)
+        $cacheTTL = match($period) {
+            'today' => 60,      // 1 minuto para hoje (dados mais recentes)
+            'yesterday' => 300,  // 5 minutos para ontem
+            default => 900       // 15 minutos para períodos mais antigos
+        };
+
+        $stats = cache()->remember(
+            "analytics_dashboard_{$instanceId}_{$period}",
+            $cacheTTL,
+            fn() => $this->analyticsService->getDashboardStats($instanceId, $period)
+        );
 
         return Inertia::render('Dashboard', [
             'stats' => $stats,
@@ -49,7 +60,13 @@ class AnalyticsController extends Controller
         $period = $validated['period'] ?? 'today';
         $instanceId = $request->user()->instance_id ?? Str::uuid()->toString();
 
-        $stats = $this->analyticsService->getTotalConversations($instanceId, $period);
+        // ✅ OTIMIZADO: Cache com TTL adaptativo
+        $cacheTTL = $period === 'today' ? 60 : 300;
+        $stats = cache()->remember(
+            "analytics_conversations_{$instanceId}_{$period}",
+            $cacheTTL,
+            fn() => $this->analyticsService->getTotalConversations($instanceId, $period)
+        );
 
         return response()->json($stats);
     }
@@ -66,7 +83,13 @@ class AnalyticsController extends Controller
         $period = $validated['period'] ?? 'today';
         $instanceId = $request->user()->instance_id ?? Str::uuid()->toString();
 
-        $stats = $this->analyticsService->getResponseRate($instanceId, $period);
+        // ✅ OTIMIZADO: Cache
+        $cacheTTL = $period === 'today' ? 60 : 300;
+        $stats = cache()->remember(
+            "analytics_response_rate_{$instanceId}_{$period}",
+            $cacheTTL,
+            fn() => $this->analyticsService->getResponseRate($instanceId, $period)
+        );
 
         return response()->json($stats);
     }
@@ -83,7 +106,13 @@ class AnalyticsController extends Controller
         $period = $validated['period'] ?? 'today';
         $instanceId = $request->user()->instance_id ?? Str::uuid()->toString();
 
-        $stats = $this->analyticsService->getAverageFirstResponseTime($instanceId, $period);
+        // ✅ OTIMIZADO: Cache
+        $cacheTTL = $period === 'today' ? 60 : 300;
+        $stats = cache()->remember(
+            "analytics_first_response_{$instanceId}_{$period}",
+            $cacheTTL,
+            fn() => $this->analyticsService->getAverageFirstResponseTime($instanceId, $period)
+        );
 
         return response()->json($stats);
     }
@@ -100,7 +129,13 @@ class AnalyticsController extends Controller
         $period = $validated['period'] ?? 'today';
         $instanceId = $request->user()->instance_id ?? Str::uuid()->toString();
 
-        $stats = $this->analyticsService->getAverageResolutionTime($instanceId, $period);
+        // ✅ OTIMIZADO: Cache
+        $cacheTTL = $period === 'today' ? 60 : 300;
+        $stats = cache()->remember(
+            "analytics_resolution_time_{$instanceId}_{$period}",
+            $cacheTTL,
+            fn() => $this->analyticsService->getAverageResolutionTime($instanceId, $period)
+        );
 
         return response()->json($stats);
     }
@@ -117,7 +152,13 @@ class AnalyticsController extends Controller
         $period = $validated['period'] ?? 'today';
         $instanceId = $request->user()->instance_id ?? Str::uuid()->toString();
 
-        $stats = $this->analyticsService->getConversationsByAgent($instanceId, $period);
+        // ✅ OTIMIZADO: Cache
+        $cacheTTL = $period === 'today' ? 120 : 600;
+        $stats = cache()->remember(
+            "analytics_by_agent_{$instanceId}_{$period}",
+            $cacheTTL,
+            fn() => $this->analyticsService->getConversationsByAgent($instanceId, $period)
+        );
 
         return response()->json($stats);
     }
@@ -134,7 +175,13 @@ class AnalyticsController extends Controller
         $period = $validated['period'] ?? 'today';
         $instanceId = $request->user()->instance_id ?? Str::uuid()->toString();
 
-        $stats = $this->analyticsService->getConversationsByDepartment($instanceId, $period);
+        // ✅ OTIMIZADO: Cache
+        $cacheTTL = $period === 'today' ? 120 : 600;
+        $stats = cache()->remember(
+            "analytics_by_department_{$instanceId}_{$period}",
+            $cacheTTL,
+            fn() => $this->analyticsService->getConversationsByDepartment($instanceId, $period)
+        );
 
         return response()->json($stats);
     }
@@ -151,7 +198,13 @@ class AnalyticsController extends Controller
         $period = $validated['period'] ?? 'today';
         $instanceId = $request->user()->instance_id ?? Str::uuid()->toString();
 
-        $stats = $this->analyticsService->getPeakHours($instanceId, $period);
+        // ✅ OTIMIZADO: Cache mais longo (dados mudam menos)
+        $cacheTTL = $period === 'today' ? 300 : 1800;
+        $stats = cache()->remember(
+            "analytics_peak_hours_{$instanceId}_{$period}",
+            $cacheTTL,
+            fn() => $this->analyticsService->getPeakHours($instanceId, $period)
+        );
 
         return response()->json($stats);
     }
@@ -168,7 +221,13 @@ class AnalyticsController extends Controller
         $period = $validated['period'] ?? 'today';
         $instanceId = $request->user()->instance_id ?? Str::uuid()->toString();
 
-        $stats = $this->analyticsService->getMessagesSentVsReceived($instanceId, $period);
+        // ✅ OTIMIZADO: Cache
+        $cacheTTL = $period === 'today' ? 60 : 300;
+        $stats = cache()->remember(
+            "analytics_messages_{$instanceId}_{$period}",
+            $cacheTTL,
+            fn() => $this->analyticsService->getMessagesSentVsReceived($instanceId, $period)
+        );
 
         return response()->json($stats);
     }
@@ -185,7 +244,13 @@ class AnalyticsController extends Controller
         $period = $validated['period'] ?? 'today';
         $instanceId = $request->user()->instance_id ?? Str::uuid()->toString();
 
-        $stats = $this->analyticsService->getConversationsOverTime($instanceId, $period);
+        // ✅ OTIMIZADO: Cache para gráficos (mais pesado)
+        $cacheTTL = $period === 'today' ? 120 : 600;
+        $stats = cache()->remember(
+            "analytics_over_time_{$instanceId}_{$period}",
+            $cacheTTL,
+            fn() => $this->analyticsService->getConversationsOverTime($instanceId, $period)
+        );
 
         return response()->json($stats);
     }

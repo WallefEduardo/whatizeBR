@@ -1,0 +1,46 @@
+{
+    "name": "WhatsBR - WhatsApp Business",
+    "short_name": "WhatsBR",
+    "start_url": "/",
+    "background_color": "#1a1d29",
+    "description": "Sistema de atendimento WhatsApp multi-atendente",
+    "display": "standalone",
+    "theme_color": "#22c55e",
+    "orientation": "portrait-primary",
+    "categories": ["business", "productivity"],
+    "icons": [
+        {
+            "src": "/logo.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/logo-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ],
+    "screenshots": [],
+    "shortcuts": [
+        {
+            "name": "Dashboard",
+            "short_name": "Dashboard",
+            "url": "/dashboard",
+            "icons": [{"src": "/logo-192.png", "sizes": "192x192"}]
+        },
+        {
+            "name": "Chat",
+            "short_name": "Chat",
+            "url": "/chat",
+            "icons": [{"src": "/logo-192.png", "sizes": "192x192"}]
+        },
+        {
+            "name": "Contatos",
+            "short_name": "Contatos",
+            "url": "/contacts",
+            "icons": [{"src": "/logo-192.png", "sizes": "192x192"}]
+        }
+    ]
+}

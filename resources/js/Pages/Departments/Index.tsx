@@ -8,7 +8,7 @@ import TableActions from '@/Components/UI/Table/TableActions'
 import ConfirmDialog from '@/Components/UI/ConfirmDialog'
 import ColorPicker from '@/Components/UI/ColorPicker'
 import { useConfirm } from '@/Hooks/useConfirm'
-import { Plus, Building2 } from 'lucide-react'
+import { Plus, Building2, Edit2, Trash2, Power } from 'lucide-react'
 
 interface Department {
   id: number
@@ -188,16 +188,29 @@ export default function DepartmentsIndex({ departments }: Props) {
       label: 'Ações',
       width: '120px',
       render: (department: Department) => (
-        <TableActions
-          onEdit={() => handleEdit(department)}
-          onDelete={() => handleDelete(department)}
-          customActions={[
-            {
-              label: department.is_active ? 'Desativar' : 'Ativar',
-              onClick: () => handleToggle(department),
-            },
-          ]}
-        />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => handleEdit(department)}
+            className="p-1.5 rounded hover:bg-dark-100 dark:hover:bg-dark-700 transition-colors"
+            title="Editar"
+          >
+            <Edit2 className="w-4 h-4 text-dark-500 dark:text-white" />
+          </button>
+          <button
+            onClick={() => handleToggle(department)}
+            className="p-1.5 rounded hover:bg-dark-100 dark:hover:bg-dark-700 transition-colors"
+            title={department.is_active ? 'Desativar' : 'Ativar'}
+          >
+            <Power className="w-4 h-4 text-dark-500 dark:text-white" />
+          </button>
+          <button
+            onClick={() => handleDelete(department)}
+            className="p-1.5 rounded hover:bg-dark-100 dark:hover:bg-dark-700 transition-colors"
+            title="Deletar"
+          >
+            <Trash2 className="w-4 h-4 text-dark-500 dark:text-white" />
+          </button>
+        </div>
       ),
     },
   ]

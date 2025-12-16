@@ -15,6 +15,7 @@ class WhatsAppInstance extends Model
     protected $table = 'whatsapp_instances';
 
     protected $fillable = [
+        'user_id',
         'name',
         'phone',
         'status',

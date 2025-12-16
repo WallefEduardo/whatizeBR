@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Api\BroadcastController;
+use App\Http\Controllers\Api\ChatController;
+use App\Http\Controllers\Api\WebhookController;
 use App\Http\Controllers\Api\WhatsAppInstanceController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\TagController;
@@ -47,4 +50,52 @@ Route::middleware('auth:sanctum')->prefix('tags')->group(function () {
 Route::middleware('auth:sanctum')->prefix('conversations')->group(function () {
     Route::get('/stats', [ConversationController::class, 'stats'])->name('conversations.stats');
     Route::get('/unread-count', [ConversationController::class, 'unreadCount'])->name('conversations.unread-count');
+});
+
+// Chat API Routes (protected by auth)
+Route::middleware('auth:sanctum')->group(function () {
+    // Listar conversas
+    Route::get('/conversations', [ChatController::class, 'index'])->name('api.conversations.index');
+
+    // Enviar mensagem
+    Route::post('/messages/send', [ChatController::class, 'sendMessage'])->name('api.messages.send');
+
+    // Obter mensagens de uma conversa
+    Route::get('/conversations/{conversationId}/messages', [ChatController::class, 'getMessages'])->name('api.messages.index');
+
+    // Marcar mensagem como lida
+    Route::patch('/messages/{messageId}/read', [ChatController::class, 'markAsRead'])->name('api.messages.read');
+
+    // Atribuir conversa
+    Route::patch('/conversations/{conversationId}/assign', [ChatController::class, 'assignConversation'])->name('api.conversations.assign');
+
+    // Fechar conversa
+    Route::patch('/conversations/{conversationId}/close', [ChatController::class, 'closeConversation'])->name('api.conversations.close');
+});
+
+// Broadcast API Routes (protected by auth)
+Route::middleware('auth:sanctum')->prefix('broadcasts')->group(function () {
+    // Listar broadcasts
+    Route::get('/', [BroadcastController::class, 'index'])->name('api.broadcasts.index');
+
+    // Criar broadcast
+    Route::post('/', [BroadcastController::class, 'store'])->name('api.broadcasts.store');
+
+    // Agendar broadcast
+    Route::post('/{id}/schedule', [BroadcastController::class, 'schedule'])->name('api.broadcasts.schedule');
+
+    // Enviar broadcast
+    Route::post('/{id}/send', [BroadcastController::class, 'send'])->name('api.broadcasts.send');
+
+    // Cancelar broadcast
+    Route::post('/{id}/cancel', [BroadcastController::class, 'cancel'])->name('api.broadcasts.cancel');
+});
+
+// Webhook Routes (public - authenticated via webhook secret)
+Route::prefix('webhook')->group(function () {
+    // Receber mensagem
+    Route::post('/message', [WebhookController::class, 'handleMessage'])->name('api.webhook.message');
+
+    // Atualização de status
+    Route::post('/status', [WebhookController::class, 'handleStatus'])->name('api.webhook.status');
 });

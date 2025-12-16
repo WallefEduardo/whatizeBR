@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { router, usePage } from '@inertiajs/react'
-import { Settings, Wifi, Bell, Code, MessageSquare, Users } from 'lucide-react'
+import { Settings, Wifi, Bell, Code, MessageSquare, Users, Tag, Building2, UserCog } from 'lucide-react'
 import AppLayout from '@/Layouts/AppLayout'
 import Tabs from '@/Components/UI/Tabs'
 import Button from '@/Components/UI/Button'
@@ -11,6 +11,9 @@ import NotificationsTab from './Tabs/NotificationsTab'
 import ApiConfigTab from './Tabs/ApiConfigTab'
 import QuickRepliesTab from './Tabs/QuickRepliesTab'
 import MembersTab from './Tabs/MembersTab'
+import TagsTab from './Tabs/TagsTab'
+import DepartmentsTab from './Tabs/DepartmentsTab'
+import UsersTab from './Tabs/UsersTab'
 
 interface QuickReply {
     id: string
@@ -51,6 +54,34 @@ interface Member {
     created_at: string
 }
 
+interface Tag {
+    id: number
+    name: string
+    color: string
+    conversations_count: number
+    contacts_count: number
+}
+
+interface DepartmentWithCounts {
+    id: number
+    name: string
+    description: string | null
+    color: string
+    is_active: boolean
+    members_count: number
+    conversations_count: number
+}
+
+interface UserFull {
+    id: string
+    name: string
+    email: string
+    role: 'admin' | 'supervisor' | 'agent'
+    is_active: boolean
+    avatar?: string | null
+    created_at: string
+}
+
 interface SettingsIndexProps extends PageProps {
     settings: SettingsData
     instances: WhatsAppInstance[]
@@ -65,10 +96,13 @@ interface SettingsIndexProps extends PageProps {
     members?: Member[]
     users?: User[]
     departments?: Department[]
+    tags?: Tag[]
+    allDepartments?: DepartmentWithCounts[]
+    allUsers?: UserFull[]
 }
 
 export default function SettingsIndex() {
-    const { settings, instances, currentInstanceId, quickReplies, members = [], users = [], departments = [] } = usePage<SettingsIndexProps>().props
+    const { settings, instances, currentInstanceId, quickReplies, members = [], users = [], departments = [], tags = [], allDepartments = [], allUsers = [] } = usePage<SettingsIndexProps>().props
     const [activeTab, setActiveTab] = useState('general')
     const [isSaving, setIsSaving] = useState(false)
 
@@ -104,7 +138,7 @@ export default function SettingsIndex() {
 
     return (
         <AppLayout title="Configurações">
-            <div className="max-w-6xl mx-auto p-6">
+            <div className="w-full p-6">
                 {/* Header */}
                 <div className="mb-6">
                     <div className="flex items-center gap-3 mb-2">
@@ -147,6 +181,18 @@ export default function SettingsIndex() {
                             <Users className="w-4 h-4" />
                             Membros
                         </Tabs.Trigger>
+                        <Tabs.Trigger value="tags" className="flex items-center gap-2">
+                            <Tag className="w-4 h-4" />
+                            Tags
+                        </Tabs.Trigger>
+                        <Tabs.Trigger value="departamentos" className="flex items-center gap-2">
+                            <Building2 className="w-4 h-4" />
+                            Departamentos
+                        </Tabs.Trigger>
+                        <Tabs.Trigger value="usuarios" className="flex items-center gap-2">
+                            <UserCog className="w-4 h-4" />
+                            Usuários
+                        </Tabs.Trigger>
                     </Tabs.List>
 
                     {/* Tab Contents */}
@@ -178,6 +224,18 @@ export default function SettingsIndex() {
 
                     <Tabs.Content value="membros">
                         <MembersTab members={members} users={users} departments={departments} />
+                    </Tabs.Content>
+
+                    <Tabs.Content value="tags">
+                        <TagsTab tags={tags} />
+                    </Tabs.Content>
+
+                    <Tabs.Content value="departamentos">
+                        <DepartmentsTab departments={allDepartments} />
+                    </Tabs.Content>
+
+                    <Tabs.Content value="usuarios">
+                        <UsersTab allUsers={allUsers} />
                     </Tabs.Content>
                 </Tabs>
             </div>
