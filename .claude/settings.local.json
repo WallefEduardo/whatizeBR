@@ -45,7 +45,9 @@
       "Bash(powershell.exe -Command \"cd ''C:\\xampp\\htdocs\\apiGoBR''; go test -v ./internal/application/replica/...\")",
       "Bash(powershell.exe -Command \"cd ''C:\\xampp\\htdocs\\apiGoBR''; go test -v -short ./internal/infrastructure/whatsapp/...\")",
       "Bash(powershell.exe -Command \"cd ''C:\\xampp\\htdocs\\apiGoBR''; go test -v ./pkg/retry/...\")",
-      "Bash(powershell.exe -Command \"cd ''C:\\xampp\\htdocs\\apiGoBR\\internal\\infrastructure\\queue''; (Get-Content dlq_test.go) -replace ''func TestMain_DLQ.*\\n.*logger.Init.*\\n.*\\n.*code := m.Run.*\\n.*os.Exit.*\\n.*\\n'', '''' | Set-Content dlq_test.go\")"
+      "Bash(powershell.exe -Command \"cd ''C:\\xampp\\htdocs\\apiGoBR\\internal\\infrastructure\\queue''; (Get-Content dlq_test.go) -replace ''func TestMain_DLQ.*\\n.*logger.Init.*\\n.*\\n.*code := m.Run.*\\n.*os.Exit.*\\n.*\\n'', '''' | Set-Content dlq_test.go\")",
+      "Bash(powershell.exe -Command \"cd ''C:\\xampp\\htdocs\\apiGoBR''; go test -v -short ./internal/application/replica/... 2>&1 | Select-String -Pattern ''PASS|FAIL|ok|SKIP''\")",
+      "Bash(powershell.exe -Command \"cd ''C:\\xampp\\htdocs\\apiGoBR''; go test ./pkg/health/... 2>&1 | Select-String -Pattern ''FAIL|error|undefined'' -Context 2\")"
     ]
   }
 }
