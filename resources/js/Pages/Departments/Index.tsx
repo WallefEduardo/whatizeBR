@@ -3,8 +3,7 @@ import { Head, router } from '@inertiajs/react'
 import AppLayout from '@/Layouts/AppLayout'
 import Button from '@/Components/UI/Button'
 import Modal from '@/Components/UI/Modal'
-import Table from '@/Components/UI/Table/Table'
-import TableActions from '@/Components/UI/Table/TableActions'
+import VirtualizedTable from '@/Components/Common/VirtualizedTable'
 import ConfirmDialog from '@/Components/UI/ConfirmDialog'
 import ColorPicker from '@/Components/UI/ColorPicker'
 import { useConfirm } from '@/Hooks/useConfirm'
@@ -237,14 +236,14 @@ export default function DepartmentsIndex({ departments }: Props) {
         </div>
 
         {/* Table */}
-        <div className="bg-white dark:bg-dark-800 rounded shadow-sm border border-dark-200 dark:border-dark-700">
-          <Table
-            columns={columns}
-            data={departments}
-            keyExtractor={(department) => department.id}
-            emptyMessage="Nenhum departamento encontrado"
-          />
-        </div>
+        <VirtualizedTable
+          columns={columns}
+          data={departments}
+          keyExtractor={(department) => department.id}
+          rowHeight={60}
+          containerHeight={600}
+          emptyMessage="Nenhum departamento encontrado"
+        />
       </div>
 
       {/* Create Modal */}

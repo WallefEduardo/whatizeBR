@@ -4396,7 +4396,7 @@ npx playwright codegen              # Gera código de teste
 - [ ] Chamadas de voz/vídeo (se suportado pela API)
 - [ ] Templates de mensagem
 - [ ] Multi-idioma (i18n)
-- [ ] Modo de alta performance (virtualização de listas)
+- [x] Modo de alta performance (virtualização de listas)
 - [x] PWA (Progressive Web App)
 
 ### Prioridade Baixa

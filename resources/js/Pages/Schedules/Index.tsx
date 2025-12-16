@@ -1,6 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import Button from '@/Components/UI/Button';
 import Badge from '@/Components/UI/Badge';
+import VirtualizedTable from '@/Components/Common/VirtualizedTable';
 import { Calendar, Clock, Users, Plus, Search, Filter } from 'lucide-react';
 import { useState } from 'react';
 import { router } from '@inertiajs/react';
@@ -172,166 +173,148 @@ export default function Index({ schedules, filters }: Props) {
                 </div>
 
                 {/* Schedules List */}
-                <div className="bg-white dark:bg-dark-800 rounded border border-dark-200 dark:border-dark-700 overflow-hidden">
-                    {schedules.data.length === 0 ? (
-                        <div className="p-12 text-center">
-                            <Calendar className="w-12 h-12 text-dark-300 mx-auto mb-4" />
-                            <p className="text-dark-500">Nenhum agendamento encontrado</p>
-                            <Button
-                                variant="primary"
-                                maxWidth="sm"
-                                className="mt-4"
-                                onClick={() => setIsModalOpen(true)}
-                            >
-                                Criar primeiro agendamento
-                            </Button>
-                        </div>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead className="bg-dark-50 dark:bg-dark-900 border-b border-dark-200 dark:border-dark-700">
-                                    <tr>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-dark-500 uppercase">
-                                            Nome
-                                        </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-dark-500 uppercase">
-                                            Tipo
-                                        </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-dark-500 uppercase">
-                                            Agendado para
-                                        </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-dark-500 uppercase">
-                                            Destinatários
-                                        </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-dark-500 uppercase">
-                                            Status
-                                        </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-dark-500 uppercase">
-                                            Progresso
-                                        </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-dark-500 uppercase">
-                                            Ações
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-dark-200 dark:divide-dark-700">
-                                    {schedules.data.map((schedule) => (
-                                        <tr
-                                            key={schedule.id}
-                                            className="hover:bg-dark-50 dark:hover:bg-dark-700/50 transition-colors"
-                                        >
-                                            <td className="px-4 py-3">
-                                                <div className="flex items-center gap-2">
-                                                    <div>
-                                                        <p className="text-sm font-medium text-dark-900 dark:text-dark-50">
-                                                            {schedule.name}
-                                                        </p>
-                                                        <p className="text-xs text-dark-500">
-                                                            {schedule.message_type === 'text'
-                                                                ? 'Texto'
-                                                                : schedule.message_type === 'image'
-                                                                ? 'Imagem'
-                                                                : schedule.message_type === 'video'
-                                                                ? 'Vídeo'
-                                                                : 'Documento'}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                {getTypeBadge(schedule.type)}
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <div className="flex items-center gap-2 text-sm text-dark-600 dark:text-dark-400">
-                                                    <Clock className="w-4 h-4" />
-                                                    {formatDate(schedule.scheduled_at)}
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <div className="flex items-center gap-2 text-sm text-dark-600 dark:text-dark-400">
-                                                    <Users className="w-4 h-4" />
-                                                    {schedule.recipients.length}
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                {getStatusBadge(schedule.status)}
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                {schedule.status === 'completed' ||
-                                                schedule.status === 'processing' ? (
-                                                    <div className="space-y-1">
-                                                        <div className="flex items-center gap-2 text-xs text-dark-600 dark:text-dark-400">
-                                                            <span className="text-green-600">
-                                                                ✓ {schedule.sent_count}
-                                                            </span>
-                                                            {schedule.failed_count > 0 && (
-                                                                <span className="text-red-600">
-                                                                    ✗ {schedule.failed_count}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <div className="w-full bg-dark-200 dark:bg-dark-700 rounded-full h-1.5">
-                                                            <div
-                                                                className="bg-primary-500 h-1.5 rounded-full"
-                                                                style={{
-                                                                    width: `${
-                                                                        (schedule.sent_count /
-                                                                            schedule.recipients
-                                                                                .length) *
-                                                                        100
-                                                                    }%`,
-                                                                }}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-xs text-dark-400">-</span>
+                {schedules.data.length === 0 ? (
+                    <div className="bg-white dark:bg-dark-800 rounded border border-dark-200 dark:border-dark-700 p-12 text-center">
+                        <Calendar className="w-12 h-12 text-dark-300 mx-auto mb-4" />
+                        <p className="text-dark-500">Nenhum agendamento encontrado</p>
+                        <Button
+                            variant="primary"
+                            maxWidth="sm"
+                            className="mt-4"
+                            onClick={() => setIsModalOpen(true)}
+                        >
+                            Criar primeiro agendamento
+                        </Button>
+                    </div>
+                ) : (
+                    <VirtualizedTable
+                        columns={[
+                            {
+                                key: 'name',
+                                label: 'Nome',
+                                render: (schedule: Schedule) => (
+                                    <div className="flex items-center gap-2">
+                                        <div>
+                                            <p className="text-sm font-medium text-dark-900 dark:text-dark-50">
+                                                {schedule.name}
+                                            </p>
+                                            <p className="text-xs text-dark-500">
+                                                {schedule.message_type === 'text'
+                                                    ? 'Texto'
+                                                    : schedule.message_type === 'image'
+                                                    ? 'Imagem'
+                                                    : schedule.message_type === 'video'
+                                                    ? 'Vídeo'
+                                                    : 'Documento'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ),
+                            },
+                            {
+                                key: 'type',
+                                label: 'Tipo',
+                                width: '120px',
+                                render: (schedule: Schedule) => getTypeBadge(schedule.type),
+                            },
+                            {
+                                key: 'scheduled_at',
+                                label: 'Agendado para',
+                                width: '180px',
+                                render: (schedule: Schedule) => (
+                                    <div className="flex items-center gap-2 text-sm text-dark-600 dark:text-dark-400">
+                                        <Clock className="w-4 h-4" />
+                                        {formatDate(schedule.scheduled_at)}
+                                    </div>
+                                ),
+                            },
+                            {
+                                key: 'recipients',
+                                label: 'Destinatários',
+                                width: '120px',
+                                render: (schedule: Schedule) => (
+                                    <div className="flex items-center gap-2 text-sm text-dark-600 dark:text-dark-400">
+                                        <Users className="w-4 h-4" />
+                                        {schedule.recipients.length}
+                                    </div>
+                                ),
+                            },
+                            {
+                                key: 'status',
+                                label: 'Status',
+                                width: '120px',
+                                render: (schedule: Schedule) => getStatusBadge(schedule.status),
+                            },
+                            {
+                                key: 'progress',
+                                label: 'Progresso',
+                                width: '150px',
+                                render: (schedule: Schedule) =>
+                                    schedule.status === 'completed' || schedule.status === 'processing' ? (
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2 text-xs text-dark-600 dark:text-dark-400">
+                                                <span className="text-green-600">✓ {schedule.sent_count}</span>
+                                                {schedule.failed_count > 0 && (
+                                                    <span className="text-red-600">✗ {schedule.failed_count}</span>
                                                 )}
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <div className="flex items-center gap-2">
-                                                    {schedule.status === 'pending' && (
-                                                        <>
-                                                            <button
-                                                                onClick={() => {
-                                                                    setEditingSchedule(schedule);
-                                                                    setIsModalOpen(true);
-                                                                }}
-                                                                className="text-sm text-blue-600 hover:text-blue-700"
-                                                            >
-                                                                Editar
-                                                            </button>
-                                                            <button
-                                                                onClick={() =>
-                                                                    handleCancel(schedule.id)
-                                                                }
-                                                                className="text-sm text-orange-600 hover:text-orange-700"
-                                                            >
-                                                                Cancelar
-                                                            </button>
-                                                        </>
-                                                    )}
-                                                    {['completed', 'failed', 'cancelled'].includes(
-                                                        schedule.status
-                                                    ) && (
-                                                        <button
-                                                            onClick={() =>
-                                                                handleDelete(schedule.id)
-                                                            }
-                                                            className="text-sm text-red-600 hover:text-red-700"
-                                                        >
-                                                            Deletar
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </div>
+                                            </div>
+                                            <div className="w-full bg-dark-200 dark:bg-dark-700 rounded-full h-1.5">
+                                                <div
+                                                    className="bg-primary-500 h-1.5 rounded-full"
+                                                    style={{
+                                                        width: `${(schedule.sent_count / schedule.recipients.length) * 100}%`,
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <span className="text-xs text-dark-400">-</span>
+                                    ),
+                            },
+                            {
+                                key: 'actions',
+                                label: 'Ações',
+                                width: '150px',
+                                render: (schedule: Schedule) => (
+                                    <div className="flex items-center gap-2">
+                                        {schedule.status === 'pending' && (
+                                            <>
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingSchedule(schedule);
+                                                        setIsModalOpen(true);
+                                                    }}
+                                                    className="text-sm text-blue-600 hover:text-blue-700"
+                                                >
+                                                    Editar
+                                                </button>
+                                                <button
+                                                    onClick={() => handleCancel(schedule.id)}
+                                                    className="text-sm text-orange-600 hover:text-orange-700"
+                                                >
+                                                    Cancelar
+                                                </button>
+                                            </>
+                                        )}
+                                        {['completed', 'failed', 'cancelled'].includes(schedule.status) && (
+                                            <button
+                                                onClick={() => handleDelete(schedule.id)}
+                                                className="text-sm text-red-600 hover:text-red-700"
+                                            >
+                                                Deletar
+                                            </button>
+                                        )}
+                                    </div>
+                                ),
+                            },
+                        ]}
+                        data={schedules.data}
+                        keyExtractor={(schedule) => schedule.id}
+                        rowHeight={80}
+                        containerHeight={600}
+                        emptyMessage="Nenhum agendamento encontrado"
+                    />
+                )}
 
                 {/* Pagination */}
                 {schedules.last_page > 1 && (

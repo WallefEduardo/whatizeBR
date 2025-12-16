@@ -4,6 +4,8 @@ import { Search, Phone, MoreVertical, Paperclip, Smile, Mic, Send, X, User, Tag 
 import AppLayout from '@/Layouts/AppLayout'
 import Badge from '@/Components/UI/Badge'
 import { useWebSocket } from '@/Hooks/useWebSocket'
+import VirtualizedConversationList from '@/Components/Chat/VirtualizedConversationList'
+import VirtualizedMessageList from '@/Components/Chat/VirtualizedMessageList'
 
 interface Tag {
     id: string
@@ -277,71 +279,15 @@ export default function ChatIndex({ conversations, selectedConversation, message
                         </div>
                     </div>
 
-                    {/* Lista de Conversas */}
-                    <div className="flex-1 overflow-y-auto">
-                        {filteredConversations.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full text-center p-8">
-                                <div className="w-16 h-16 rounded-full bg-dark-100 dark:bg-dark-700 flex items-center justify-center mb-4">
-                                    <Search className="w-8 h-8 text-dark-400" />
-                                </div>
-                                <p className="text-sm text-dark-500">
-                                    Nenhuma conversa encontrada
-                                </p>
-                            </div>
-                        ) : (
-                            filteredConversations.map((conversation) => (
-                                <button
-                                    key={conversation.id}
-                                    onClick={() => handleConversationClick(conversation.id)}
-                                    className={`w-full p-4 flex items-start gap-3 hover:bg-dark-50 dark:hover:bg-dark-700/50 transition-colors border-b border-dark-100 dark:border-dark-700 ${
-                                        selectedConversation?.id === conversation.id
-                                            ? 'bg-dark-50 dark:bg-dark-700/50'
-                                            : ''
-                                    }`}
-                                >
-                                    {/* Avatar */}
-                                    <div className="relative flex-shrink-0">
-                                        <div className="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900/20 flex items-center justify-center">
-                                            {conversation.contact.avatar_url ? (
-                                                <img
-                                                    src={conversation.contact.avatar_url}
-                                                    alt={conversation.contact.name || conversation.contact.phone}
-                                                    className="w-12 h-12 rounded-full object-cover"
-                                                />
-                                            ) : (
-                                                <span className="text-primary-600 dark:text-primary-400 font-semibold text-sm">
-                                                    {getInitials(conversation.contact.name, conversation.contact.phone)}
-                                                </span>
-                                            )}
-                                        </div>
-                                        {conversation.unread_count > 0 && (
-                                            <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center">
-                                                <span className="text-white text-xs font-bold">
-                                                    {conversation.unread_count > 9 ? '9+' : conversation.unread_count}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Info */}
-                                    <div className="flex-1 min-w-0 text-left">
-                                        <div className="flex items-center justify-between mb-1">
-                                            <h3 className="font-semibold text-dark-900 dark:text-dark-50 truncate">
-                                                {conversation.contact.name || conversation.contact.phone}
-                                            </h3>
-                                            {conversation.last_message_at && (
-                                                <span className="text-xs text-dark-500 ml-2 flex-shrink-0">
-                                                    {formatTime(conversation.last_message_at)}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <p className="text-sm text-dark-500 truncate">
-                                            {conversation.last_message || 'Nenhuma mensagem'}
-                                        </p>
-                                    </div>
-                                </button>
-                            ))
-                        )}
+                    {/* Lista de Conversas - Virtualizada */}
+                    <div className="flex-1 overflow-hidden">
+                        <VirtualizedConversationList
+                            conversations={filteredConversations}
+                            selectedConversationId={selectedConversation?.id}
+                            onConversationClick={handleConversationClick}
+                            getInitials={getInitials}
+                            formatTime={formatTime}
+                        />
                     </div>
                 </div>
 
@@ -419,72 +365,13 @@ export default function ChatIndex({ conversations, selectedConversation, message
                                 </div>
                             )}
 
-                            {/* Área de Mensagens */}
-                            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                                {localMessages.length === 0 ? (
-                                    <div className="flex items-center justify-center h-full">
-                                        <div className="text-center">
-                                            <div className="w-20 h-20 rounded-full bg-dark-100 dark:bg-dark-700 flex items-center justify-center mx-auto mb-4">
-                                                <Search className="w-10 h-10 text-dark-400" />
-                                            </div>
-                                            <p className="text-sm text-dark-500">
-                                                Nenhuma mensagem ainda
-                                            </p>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <>
-                                        {localMessages.map((message) => (
-                                        <div
-                                            key={message.id}
-                                            className={`flex ${message.direction === 'outbound' ? 'justify-end' : 'justify-start'}`}
-                                        >
-                                            <div
-                                                className={`max-w-md px-4 py-2 rounded ${
-                                                    message.direction === 'outbound'
-                                                        ? 'bg-primary-500 text-white rounded-br-none'
-                                                        : 'bg-white dark:bg-dark-800 text-dark-900 dark:text-dark-50 rounded-bl-none'
-                                                }`}
-                                            >
-                                                {message.type === 'text' && (
-                                                    <p className="text-sm whitespace-pre-wrap break-words">
-                                                        {message.content}
-                                                    </p>
-                                                )}
-
-                                                {message.type === 'image' && (
-                                                    <div>
-                                                        <img
-                                                            src={message.media_url}
-                                                            alt="Imagem"
-                                                            className="rounded mb-2 max-w-full"
-                                                        />
-                                                        {message.caption && (
-                                                            <p className="text-sm whitespace-pre-wrap break-words">
-                                                                {message.caption}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                                <div className={`flex items-center justify-end gap-1 mt-1 ${
-                                                    message.direction === 'outbound' ? 'text-white/70' : 'text-dark-500'
-                                                }`}>
-                                                    <span className="text-xs">
-                                                        {formatMessageTime(message.created_at)}
-                                                    </span>
-                                                    {message.direction === 'outbound' && (
-                                                        <div className="flex-shrink-0">
-                                                            {getStatusCheckmarks(message.status)}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        ))}
-                                        <div ref={messagesEndRef} />
-                                    </>
-                                )}
+                            {/* Área de Mensagens - Virtualizada */}
+                            <div className="flex-1 overflow-hidden">
+                                <VirtualizedMessageList
+                                    messages={localMessages}
+                                    formatMessageTime={formatMessageTime}
+                                    getStatusCheckmarks={getStatusCheckmarks}
+                                />
                             </div>
 
                             {/* Input de Mensagem */}

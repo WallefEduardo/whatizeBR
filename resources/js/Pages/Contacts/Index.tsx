@@ -3,7 +3,7 @@ import { router } from '@inertiajs/react'
 import { Plus, Search, Filter, X, UserPlus, Users, UserX, Tag as TagIcon } from 'lucide-react'
 import AppLayout from '@/Layouts/AppLayout'
 import Button from '@/Components/UI/Button'
-import Table from '@/Components/UI/Table/Table'
+import VirtualizedTable from '@/Components/Common/VirtualizedTable'
 import TableActions from '@/Components/UI/Table/TableActions'
 import Badge from '@/Components/UI/Badge'
 import Modal from '@/Components/UI/Modal'
@@ -461,12 +461,14 @@ export default function ContactsIndex({ contacts, tags, instances, filters }: Pr
                     )}
                 </div>
 
-                {/* Table */}
+                {/* Table - Virtualizada */}
                 <div className="bg-white dark:bg-dark-800 rounded shadow-sm border border-dark-200 dark:border-dark-700">
-                    <Table
+                    <VirtualizedTable
                         columns={columns}
                         data={contacts.data}
                         keyExtractor={(contact) => contact.id}
+                        rowHeight={72}
+                        containerHeight={600}
                         emptyMessage="Nenhum contato encontrado. Clique em 'Novo Contato' para adicionar."
                     />
 

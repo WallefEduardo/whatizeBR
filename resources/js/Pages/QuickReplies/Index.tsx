@@ -1,6 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import Button from '@/Components/UI/Button';
 import Input from '@/Components/UI/Input';
+import VirtualizedTable from '@/Components/Common/VirtualizedTable';
 import { useState } from 'react';
 import { router } from '@inertiajs/react';
 import { Plus, Search, Edit, Trash2, MessageSquare, Image, Video, FileText } from 'lucide-react';
@@ -142,90 +143,85 @@ export default function Index({ quickReplies, filters }: Props) {
                 </div>
 
                 {/* Table */}
-                <div className="bg-white dark:bg-dark-800 rounded border border-dark-200 dark:border-dark-700 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-dark-50 dark:bg-dark-900 border-b border-dark-200 dark:border-dark-700">
-                                <tr>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-dark-500 uppercase tracking-wider">
-                                        Atalho
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-dark-500 uppercase tracking-wider">
-                                        Mensagem
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-dark-500 uppercase tracking-wider w-24">
-                                        Mídia
-                                    </th>
-                                    <th className="px-4 py-3 text-right text-xs font-medium text-dark-500 uppercase tracking-wider w-32">
-                                        Ações
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white dark:bg-dark-800 divide-y divide-dark-200 dark:divide-dark-700">
-                                {quickReplies.data.length === 0 ? (
-                                    <tr>
-                                        <td
-                                            colSpan={4}
-                                            className="px-4 py-12 text-center text-dark-500"
-                                        >
-                                            <MessageSquare className="w-12 h-12 mx-auto mb-3 text-dark-300 dark:text-dark-600" />
-                                            <p className="text-sm">
-                                                {search
-                                                    ? 'Nenhuma resposta rápida encontrada'
-                                                    : 'Nenhuma resposta rápida cadastrada'}
-                                            </p>
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    quickReplies.data.map((quickReply) => (
-                                        <tr
-                                            key={quickReply.id}
-                                            className="hover:bg-dark-50 dark:hover:bg-dark-700/50 transition-colors"
-                                        >
-                                            <td className="px-4 py-3 text-sm">
-                                                <span className="inline-flex items-center px-2 py-1 rounded bg-primary-500/10 text-primary-600 dark:text-primary-400 font-mono text-xs">
-                                                    /{quickReply.shortcut}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-dark-900 dark:text-dark-100">
-                                                <div className="max-w-md truncate">
-                                                    {quickReply.message}
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3 text-sm">
-                                                <div className="flex items-center gap-1">
-                                                    {getMediaIcon(quickReply.media_type)}
-                                                    {quickReply.media_type && (
-                                                        <span className="text-xs text-dark-500 capitalize">
-                                                            {quickReply.media_type}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3 text-sm">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button
-                                                        onClick={() => handleEdit(quickReply)}
-                                                        className="p-1.5 rounded hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors"
-                                                        title="Editar"
-                                                    >
-                                                        <Edit className="w-4 h-4 text-dark-500" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(quickReply.id)}
-                                                        className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                                                        title="Deletar"
-                                                    >
-                                                        <Trash2 className="w-4 h-4 text-dark-500 hover:text-red-600" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                {quickReplies.data.length === 0 ? (
+                    <div className="bg-white dark:bg-dark-800 rounded border border-dark-200 dark:border-dark-700 px-4 py-12 text-center text-dark-500">
+                        <MessageSquare className="w-12 h-12 mx-auto mb-3 text-dark-300 dark:text-dark-600" />
+                        <p className="text-sm">
+                            {search
+                                ? 'Nenhuma resposta rápida encontrada'
+                                : 'Nenhuma resposta rápida cadastrada'}
+                        </p>
                     </div>
+                ) : (
+                    <div className="bg-white dark:bg-dark-800 rounded border border-dark-200 dark:border-dark-700 overflow-hidden">
+                        <VirtualizedTable
+                            columns={[
+                                {
+                                    key: 'shortcut',
+                                    label: 'Atalho',
+                                    width: '150px',
+                                    render: (quickReply: QuickReply) => (
+                                        <span className="inline-flex items-center px-2 py-1 rounded bg-primary-500/10 text-primary-600 dark:text-primary-400 font-mono text-xs">
+                                            /{quickReply.shortcut}
+                                        </span>
+                                    ),
+                                },
+                                {
+                                    key: 'message',
+                                    label: 'Mensagem',
+                                    render: (quickReply: QuickReply) => (
+                                        <div className="max-w-md truncate text-dark-900 dark:text-dark-100">
+                                            {quickReply.message}
+                                        </div>
+                                    ),
+                                },
+                                {
+                                    key: 'media',
+                                    label: 'Mídia',
+                                    width: '120px',
+                                    render: (quickReply: QuickReply) => (
+                                        <div className="flex items-center gap-1">
+                                            {getMediaIcon(quickReply.media_type)}
+                                            {quickReply.media_type && (
+                                                <span className="text-xs text-dark-500 capitalize">
+                                                    {quickReply.media_type}
+                                                </span>
+                                            )}
+                                        </div>
+                                    ),
+                                },
+                                {
+                                    key: 'actions',
+                                    label: 'Ações',
+                                    width: '100px',
+                                    render: (quickReply: QuickReply) => (
+                                        <div className="flex items-center justify-end gap-2">
+                                            <button
+                                                onClick={() => handleEdit(quickReply)}
+                                                className="p-1.5 rounded hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors"
+                                                title="Editar"
+                                            >
+                                                <Edit className="w-4 h-4 text-dark-500" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(quickReply.id)}
+                                                className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                                title="Deletar"
+                                            >
+                                                <Trash2 className="w-4 h-4 text-dark-500 hover:text-red-600" />
+                                            </button>
+                                        </div>
+                                    ),
+                                },
+                            ]}
+                            data={quickReplies.data}
+                            keyExtractor={(quickReply) => quickReply.id}
+                            rowHeight={64}
+                            containerHeight={600}
+                            emptyMessage="Nenhuma resposta rápida encontrada"
+                        />
+                    </div>
+                )}
 
                     {/* Pagination */}
                     {quickReplies.last_page > 1 && (

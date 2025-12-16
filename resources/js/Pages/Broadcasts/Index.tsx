@@ -1,6 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import Button from '@/Components/UI/Button';
 import Badge from '@/Components/UI/Badge';
+import VirtualizedTable from '@/Components/Common/VirtualizedTable';
 import { useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { Plus, Send, XCircle, Eye, Edit, Trash2, Filter, Search } from 'lucide-react';
@@ -229,129 +230,132 @@ export default function BroadcastsIndex({ broadcasts, filters }: Props) {
                 </div>
 
                 {/* Broadcasts List */}
-                <div className="bg-white dark:bg-dark-800 rounded border border-dark-200 dark:border-dark-700">
-                    {broadcasts.data.length === 0 ? (
-                        <div className="text-center py-12">
-                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-dark-100 dark:bg-dark-700 mb-4">
-                                <Send className="w-8 h-8 text-dark-400" />
-                            </div>
-                            <h3 className="text-lg font-medium text-dark-900 dark:text-dark-50 mb-2">
-                                Nenhuma transmissão encontrada
-                            </h3>
-                            <p className="text-dark-500 mb-4">
-                                Comece criando sua primeira transmissão em massa.
-                            </p>
-                            <Button variant="primary" onClick={handleCreate}>
-                                <Plus className="w-4 h-4 mr-2" />
-                                Nova Transmissão
-                            </Button>
+                {broadcasts.data.length === 0 ? (
+                    <div className="bg-white dark:bg-dark-800 rounded border border-dark-200 dark:border-dark-700 text-center py-12">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-dark-100 dark:bg-dark-700 mb-4">
+                            <Send className="w-8 h-8 text-dark-400" />
                         </div>
-                    ) : (
-                        <div className="divide-y divide-dark-200 dark:divide-dark-700">
-                            {broadcasts.data.map((broadcast) => (
-                                <div key={broadcast.id} className="p-6 hover:bg-dark-50 dark:hover:bg-dark-700/50 transition-colors">
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <h3 className="text-lg font-semibold text-dark-900 dark:text-dark-50">
-                                                    {broadcast.name}
-                                                </h3>
-                                                {getStatusBadge(broadcast.status)}
-                                                {getTypeBadge(broadcast.message_type)}
-                                            </div>
-
-                                            {/* Stats */}
-                                            <BroadcastStats broadcast={broadcast} />
-
-                                            {/* Scheduled Date */}
-                                            {broadcast.scheduled_at && (
-                                                <p className="text-sm text-dark-500 mt-2">
-                                                    Agendado para: {new Date(broadcast.scheduled_at).toLocaleString('pt-BR')}
-                                                </p>
-                                            )}
+                        <h3 className="text-lg font-medium text-dark-900 dark:text-dark-50 mb-2">
+                            Nenhuma transmissão encontrada
+                        </h3>
+                        <p className="text-dark-500 mb-4">
+                            Comece criando sua primeira transmissão em massa.
+                        </p>
+                        <Button variant="primary" onClick={handleCreate}>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Nova Transmissão
+                        </Button>
+                    </div>
+                ) : (
+                    <VirtualizedTable
+                        columns={[
+                            {
+                                key: 'broadcast',
+                                label: 'Transmissão',
+                                render: (broadcast: Broadcast) => (
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <h3 className="text-lg font-semibold text-dark-900 dark:text-dark-50">
+                                                {broadcast.name}
+                                            </h3>
+                                            {getStatusBadge(broadcast.status)}
+                                            {getTypeBadge(broadcast.message_type)}
                                         </div>
-
-                                        {/* Actions */}
-                                        <div className="flex items-center gap-2 ml-4">
-                                            {broadcast.status === 'draft' && (
-                                                <>
-                                                    <button
-                                                        onClick={() => handleSend(broadcast)}
-                                                        className="p-2 rounded hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
-                                                        title="Enviar"
-                                                    >
-                                                        <Send className="w-4 h-4 text-dark-500 hover:text-primary-600" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleEdit(broadcast)}
-                                                        className="p-2 rounded hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors"
-                                                        title="Editar"
-                                                    >
-                                                        <Edit className="w-4 h-4 text-dark-500" />
-                                                    </button>
-                                                </>
-                                            )}
-
-                                            {(broadcast.status === 'processing' || broadcast.status === 'scheduled') && (
-                                                <button
-                                                    onClick={() => handleCancel(broadcast)}
-                                                    className="p-2 rounded hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
-                                                    title="Cancelar"
-                                                >
-                                                    <XCircle className="w-4 h-4 text-dark-500 hover:text-orange-600" />
-                                                </button>
-                                            )}
-
-                                            <button
-                                                onClick={() => router.visit(route('broadcasts.show', broadcast.id))}
-                                                className="p-2 rounded hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors"
-                                                title="Visualizar"
-                                            >
-                                                <Eye className="w-4 h-4 text-dark-500" />
-                                            </button>
-
-                                            {['draft', 'cancelled', 'completed'].includes(broadcast.status) && (
-                                                <button
-                                                    onClick={() => handleDelete(broadcast)}
-                                                    className="p-2 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                                                    title="Deletar"
-                                                >
-                                                    <Trash2 className="w-4 h-4 text-dark-500 hover:text-red-600" />
-                                                </button>
-                                            )}
-                                        </div>
+                                        <BroadcastStats broadcast={broadcast} />
+                                        {broadcast.scheduled_at && (
+                                            <p className="text-sm text-dark-500 mt-2">
+                                                Agendado para: {new Date(broadcast.scheduled_at).toLocaleString('pt-BR')}
+                                            </p>
+                                        )}
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* Pagination */}
-                    {broadcasts.last_page > 1 && (
-                        <div className="px-6 py-4 border-t border-dark-200 dark:border-dark-700">
-                            <div className="flex items-center justify-between">
-                                <p className="text-sm text-dark-500">
-                                    Mostrando {broadcasts.data.length} de {broadcasts.total} transmissões
-                                </p>
-                                <div className="flex gap-2">
-                                    {Array.from({ length: broadcasts.last_page }, (_, i) => i + 1).map((page) => (
+                                ),
+                            },
+                            {
+                                key: 'actions',
+                                label: 'Ações',
+                                width: '200px',
+                                render: (broadcast: Broadcast) => (
+                                    <div className="flex items-center gap-2 ml-4">
+                                        {broadcast.status === 'draft' && (
+                                            <>
+                                                <button
+                                                    onClick={() => handleSend(broadcast)}
+                                                    className="p-2 rounded hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
+                                                    title="Enviar"
+                                                >
+                                                    <Send className="w-4 h-4 text-dark-500 hover:text-primary-600" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleEdit(broadcast)}
+                                                    className="p-2 rounded hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors"
+                                                    title="Editar"
+                                                >
+                                                    <Edit className="w-4 h-4 text-dark-500" />
+                                                </button>
+                                            </>
+                                        )}
+                                        {(broadcast.status === 'processing' || broadcast.status === 'scheduled') && (
+                                            <button
+                                                onClick={() => handleCancel(broadcast)}
+                                                className="p-2 rounded hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
+                                                title="Cancelar"
+                                            >
+                                                <XCircle className="w-4 h-4 text-dark-500 hover:text-orange-600" />
+                                            </button>
+                                        )}
                                         <button
-                                            key={page}
-                                            onClick={() => router.get(route('broadcasts.index', { page, ...filters }))}
-                                            className={`px-3 py-1 rounded text-sm ${
-                                                page === broadcasts.current_page
-                                                    ? 'bg-primary-500 text-white'
-                                                    : 'bg-dark-100 dark:bg-dark-700 text-dark-700 dark:text-dark-300 hover:bg-dark-200 dark:hover:bg-dark-600'
-                                            }`}
+                                            onClick={() => router.visit(route('broadcasts.show', broadcast.id))}
+                                            className="p-2 rounded hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors"
+                                            title="Visualizar"
                                         >
-                                            {page}
+                                            <Eye className="w-4 h-4 text-dark-500" />
                                         </button>
-                                    ))}
-                                </div>
+                                        {['draft', 'cancelled', 'completed'].includes(broadcast.status) && (
+                                            <button
+                                                onClick={() => handleDelete(broadcast)}
+                                                className="p-2 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                                title="Deletar"
+                                            >
+                                                <Trash2 className="w-4 h-4 text-dark-500 hover:text-red-600" />
+                                            </button>
+                                        )}
+                                    </div>
+                                ),
+                            },
+                        ]}
+                        data={broadcasts.data}
+                        keyExtractor={(broadcast) => broadcast.id}
+                        rowHeight={140}
+                        containerHeight={600}
+                        emptyMessage="Nenhuma transmissão encontrada"
+                    />
+                )}
+
+                {/* Pagination */}
+                {broadcasts.last_page > 1 && (
+                    <div className="bg-white dark:bg-dark-800 rounded border border-dark-200 dark:border-dark-700 px-6 py-4">
+                        <div className="flex items-center justify-between">
+                            <p className="text-sm text-dark-500">
+                                Mostrando {broadcasts.data.length} de {broadcasts.total} transmissões
+                            </p>
+                            <div className="flex gap-2">
+                                {Array.from({ length: broadcasts.last_page }, (_, i) => i + 1).map((page) => (
+                                    <button
+                                        key={page}
+                                        onClick={() => router.get(route('broadcasts.index', { page, ...filters }))}
+                                        className={`px-3 py-1 rounded text-sm ${
+                                            page === broadcasts.current_page
+                                                ? 'bg-primary-500 text-white'
+                                                : 'bg-dark-100 dark:bg-dark-700 text-dark-700 dark:text-dark-300 hover:bg-dark-200 dark:hover:bg-dark-600'
+                                        }`}
+                                    >
+                                        {page}
+                                    </button>
+                                ))}
                             </div>
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
 
             {/* Modal */}
