@@ -19,19 +19,23 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// WhatsApp Instance Management Routes
-Route::prefix('whatsapp')->group(function () {
+// WhatsApp Instance Management Routes (accessible from authenticated Inertia pages)
+Route::middleware('web')->prefix('whatsapp')->group(function () {
     // Create new WhatsApp instance
     Route::post('/instances', [WhatsAppInstanceController::class, 'store'])
         ->name('whatsapp.instances.store');
 
-    // Get QR Code for instance
-    Route::get('/instances/{token}/qr', [WhatsAppInstanceController::class, 'getQr'])
+    // Get/Generate QR Code for instance
+    Route::match(['get', 'post'], '/instances/{token}/qr', [WhatsAppInstanceController::class, 'getQr'])
         ->name('whatsapp.instances.qr');
 
     // Get instance status
     Route::get('/instances/{token}/status', [WhatsAppInstanceController::class, 'getStatus'])
         ->name('whatsapp.instances.status');
+
+    // Disconnect instance (without deleting)
+    Route::post('/instances/{token}/disconnect', [WhatsAppInstanceController::class, 'disconnect'])
+        ->name('whatsapp.instances.disconnect');
 
     // Disconnect and delete instance
     Route::delete('/instances/{token}', [WhatsAppInstanceController::class, 'destroy'])

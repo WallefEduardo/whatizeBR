@@ -35,4 +35,21 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Go WhatsApp API Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for the Go-based WhatsApp API microservices.
+    | This service handles WhatsApp session management, QR code generation,
+    | and message sending/receiving via RabbitMQ.
+    |
+    */
+
+    'go_whatsapp' => [
+        'base_url' => env('GO_WHATSAPP_API_URL', 'http://localhost:8082'),
+        'ws_url' => env('GO_WHATSAPP_WS_URL', 'ws://localhost:8082/ws'),
+        'admin_token' => env('GO_WHATSAPP_ADMIN_TOKEN', ''),
+    ],
+
 ];

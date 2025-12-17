@@ -3,12 +3,12 @@
 namespace App\Jobs;
 
 use App\Models\Message;
+use App\Services\RabbitMQ\RabbitMQService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class SendWhatsAppMediaMessage implements ShouldQueue
@@ -22,32 +22,51 @@ class SendWhatsAppMediaMessage implements ShouldQueue
         public Message $message
     ) {}
 
-    public function handle(): void
+    public function handle(RabbitMQService $rabbitmq): void
     {
         try {
-            $response = Http::timeout(60)
-                ->post('whatsapp-api/messages/send', [
-                    'to' => $this->message->to_phone,
-                    'type' => $this->message->type,
-                    'media_url' => $this->message->media_url,
-                    'caption' => $this->message->caption,
-                ]);
+            // Get instance token from the message's WhatsApp instance
+            $instanceToken = $this->message->instance->instance_key;
 
-            if ($response->successful()) {
-                $data = $response->json();
+            // Determine media type from message type
+            $mediaType = match($this->message->type) {
+                'image' => 'image',
+                'video' => 'video',
+                'audio' => 'audio',
+                'document' => 'document',
+                default => 'document'
+            };
 
-                $this->message->update([
-                    'status' => 'sent',
-                    'message_id' => $data['message_id'] ?? null,
-                    'sent_at' => now(),
-                ]);
-            } else {
-                throw new \Exception('API returned error: ' . $response->body());
-            }
+            Log::info('Publishing media message to RabbitMQ', [
+                'message_id' => $this->message->id,
+                'instance_token' => $instanceToken,
+                'to' => $this->message->to_phone,
+                'media_type' => $mediaType,
+            ]);
+
+            // Publish message to RabbitMQ with routing key: send.media
+            $rabbitmq->publishMediaMessage(
+                $instanceToken,
+                $this->message->to_phone,
+                $this->message->media_url,
+                $mediaType,
+                $this->message->caption
+            );
+
+            // Update message status to "queued" (waiting for Replica Service to send)
+            $this->message->update([
+                'status' => 'queued',
+            ]);
+
+            Log::info('Media message queued successfully', [
+                'message_id' => $this->message->id,
+            ]);
+
         } catch (\Exception $e) {
-            Log::error('Failed to send WhatsApp media message', [
+            Log::error('Failed to queue WhatsApp media message', [
                 'message_id' => $this->message->id,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
             $this->message->update([

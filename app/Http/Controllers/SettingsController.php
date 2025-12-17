@@ -43,7 +43,7 @@ class SettingsController extends Controller
         $instances = cache()->remember(
             'whatsapp_instances_list',
             300,
-            fn() => WhatsAppInstance::select('id', 'name', 'phone', 'status')->get()
+            fn() => WhatsAppInstance::select('id', 'name', 'phone', 'status', 'instance_key')->get()
         );
 
         // Buscar quick replies se for a tab de respostas rápidas

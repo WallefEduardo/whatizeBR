@@ -3,12 +3,12 @@
 namespace App\Jobs;
 
 use App\Models\Message;
+use App\Services\RabbitMQ\RabbitMQService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class SendWhatsAppTextMessage implements ShouldQueue
@@ -22,32 +22,39 @@ class SendWhatsAppTextMessage implements ShouldQueue
         public Message $message
     ) {}
 
-    public function handle(): void
+    public function handle(RabbitMQService $rabbitmq): void
     {
         try {
-            // Simula envio via API (substituir pela API real depois)
-            $response = Http::timeout(30)
-                ->post('whatsapp-api/messages/send', [
-                    'to' => $this->message->to_phone,
-                    'type' => 'text',
-                    'content' => $this->message->content,
-                ]);
+            // Get instance token from the message's WhatsApp instance
+            $instanceToken = $this->message->instance->instance_key;
 
-            if ($response->successful()) {
-                $data = $response->json();
+            Log::info('Publishing text message to RabbitMQ', [
+                'message_id' => $this->message->id,
+                'instance_token' => $instanceToken,
+                'to' => $this->message->to_phone,
+            ]);
 
-                $this->message->update([
-                    'status' => 'sent',
-                    'message_id' => $data['message_id'] ?? null,
-                    'sent_at' => now(),
-                ]);
-            } else {
-                throw new \Exception('API returned error: ' . $response->body());
-            }
+            // Publish message to RabbitMQ with routing key: send.text
+            $rabbitmq->publishTextMessage(
+                $instanceToken,
+                $this->message->to_phone,
+                $this->message->content
+            );
+
+            // Update message status to "queued" (waiting for Replica Service to send)
+            $this->message->update([
+                'status' => 'queued',
+            ]);
+
+            Log::info('Message queued successfully', [
+                'message_id' => $this->message->id,
+            ]);
+
         } catch (\Exception $e) {
-            Log::error('Failed to send WhatsApp message', [
+            Log::error('Failed to queue WhatsApp message', [
                 'message_id' => $this->message->id,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
             $this->message->update([

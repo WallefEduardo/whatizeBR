@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\WhatsAppInstance;
-use App\Services\WhatsApp\WhatsAppService;
+use App\Services\WhatsApp\GoApiService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -14,7 +14,7 @@ use Illuminate\Validation\ValidationException;
 class WhatsAppInstanceController extends Controller
 {
     public function __construct(
-        private WhatsAppService $whatsappService
+        private GoApiService $goApi
     ) {}
 
     /**
@@ -29,26 +29,35 @@ class WhatsAppInstanceController extends Controller
                 'name' => 'required|string|max:255',
             ]);
 
-            // Use authenticated user ID
-            $userId = $request->user()?->id ?? $request->input('user_id');
+            // Use authenticated user ID (from session or Sanctum)
+            $userId = auth()->id() ?? $request->user()?->id ?? 1; // Fallback to admin user
 
-            $token = Str::random(32);
+            // Generate unique instance token
+            $instanceToken = 'inst_' . uniqid() . '_' . Str::random(16);
 
+            // Create session in Go API first
+            $goSession = $this->goApi->createSession($instanceToken);
+
+            // Create instance in Laravel database
             $instance = WhatsAppInstance::create([
                 'name' => $validated['name'],
-                'token' => $token,
+                'instance_key' => $instanceToken,
                 'user_id' => $userId,
-                'status' => 'disconnected',
-                'settings' => [
-                    'webhook_url' => null,
-                    'auto_reply' => false,
+                'status' => $goSession['status'] ?? 'disconnected',
+                'webhook_config' => [
+                    'url' => null,
+                    'secret' => Str::random(32),
                 ],
             ]);
 
+            // Clear cache
+            cache()->forget('whatsapp_instances_list');
+
             Log::info('WhatsApp instance created', [
                 'instance_id' => $instance->id,
-                'token' => $token,
+                'token' => $instanceToken,
                 'user_id' => $userId,
+                'go_status' => $goSession['status'] ?? null,
             ]);
 
             return response()->json([
@@ -56,8 +65,9 @@ class WhatsAppInstanceController extends Controller
                 'data' => [
                     'id' => $instance->id,
                     'name' => $instance->name,
-                    'token' => $instance->token,
+                    'instance_key' => $instance->instance_key,
                     'status' => $instance->status,
+                    'phone' => $instance->phone,
                     'created_at' => $instance->created_at,
                 ],
             ], 201);
@@ -77,7 +87,7 @@ class WhatsAppInstanceController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create instance',
+                'message' => 'Failed to create instance: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -90,32 +100,37 @@ class WhatsAppInstanceController extends Controller
     public function getQr(string $token): JsonResponse
     {
         try {
-            $instance = WhatsAppInstance::where('token', $token)->firstOrFail();
-
-            // In a real implementation, this would communicate with the Go Connection Service
-            // For now, we return a placeholder response
+            $instance = WhatsAppInstance::where('instance_key', $token)->firstOrFail();
 
             Log::info('QR Code requested', [
                 'instance_id' => $instance->id,
+                'token' => $token,
                 'status' => $instance->status,
             ]);
 
-            if ($instance->status === 'connected') {
+            if ($instance->status === 'authenticated') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Instance is already connected',
+                    'message' => 'Instance is already authenticated',
                 ], 400);
             }
 
-            // Update status to connecting
-            $instance->update(['status' => 'connecting']);
+            // Generate QR code via Go API
+            $qrData = $this->goApi->generateQrCode($token);
+
+            // Update instance status and QR code
+            $instance->update([
+                'status' => 'connecting',
+                'qr_code' => $qrData['qr_code'] ?? null,
+            ]);
 
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'qr_code' => $instance->qr_code,
-                    'status' => $instance->status,
-                    'expires_at' => now()->addMinutes(2)->toIso8601String(),
+                    'qr_code' => $qrData['qr_code'],
+                    'status' => 'connecting',
+                    'expires_at' => $qrData['expires_at'],
+                    'generated_at' => $qrData['generated_at'],
                 ],
             ]);
 
@@ -126,14 +141,27 @@ class WhatsAppInstanceController extends Controller
             ], 404);
 
         } catch (\Exception $e) {
+            $errorMsg = $e->getMessage();
+
             Log::error('Failed to get QR Code', [
                 'token' => $token,
-                'error' => $e->getMessage(),
+                'error' => $errorMsg,
             ]);
+
+            // Check if error is "already connected"
+            if (str_contains(strtolower($errorMsg), 'already connected')) {
+                // Update instance status to authenticated
+                $instance->update(['status' => 'authenticated']);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Instance is already connected',
+                ], 400);
+            }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to get QR Code',
+                'message' => 'Failed to get QR Code: ' . $errorMsg,
             ], 500);
         }
     }
@@ -146,20 +174,40 @@ class WhatsAppInstanceController extends Controller
     public function getStatus(string $token): JsonResponse
     {
         try {
-            $instance = WhatsAppInstance::where('token', $token)->firstOrFail();
+            $instance = WhatsAppInstance::where('instance_key', $token)->firstOrFail();
 
-            Log::info('Status requested', [
-                'instance_id' => $instance->id,
-                'status' => $instance->status,
-            ]);
+            // Get status from Go API
+            try {
+                $goStatus = $this->goApi->getSessionStatus($token);
+
+                // Update local database with Go API status
+                $instance->update([
+                    'status' => $goStatus['status'] ?? $instance->status,
+                    'phone_number' => $goStatus['phone_number'] ?? $instance->phone_number,
+                    'connected_at' => $goStatus['connected_at'] ?? $instance->connected_at,
+                ]);
+
+                Log::info('Status synchronized from Go API', [
+                    'instance_id' => $instance->id,
+                    'go_status' => $goStatus['status'] ?? null,
+                ]);
+
+            } catch (\Exception $e) {
+                // If Go API fails, return local database status
+                Log::warning('Failed to get status from Go API, using local', [
+                    'token' => $token,
+                    'error' => $e->getMessage(),
+                ]);
+            }
 
             return response()->json([
                 'success' => true,
                 'data' => [
                     'id' => $instance->id,
                     'name' => $instance->name,
+                    'instance_key' => $instance->instance_key,
                     'status' => $instance->status,
-                    'phone_number' => $instance->phone_number,
+                    'phone' => $instance->phone,
                     'connected_at' => $instance->connected_at,
                     'last_seen_at' => $instance->last_seen_at,
                 ],
@@ -185,6 +233,66 @@ class WhatsAppInstanceController extends Controller
     }
 
     /**
+     * Disconnect WhatsApp instance (without deleting)
+     *
+     * POST /api/whatsapp/instances/{token}/disconnect
+     */
+    public function disconnect(string $token): JsonResponse
+    {
+        try {
+            $instance = WhatsAppInstance::where('instance_key', $token)->firstOrFail();
+
+            Log::info('Disconnecting instance', [
+                'instance_id' => $instance->id,
+                'token' => $token,
+                'status' => $instance->status,
+            ]);
+
+            // Disconnect session in Go API
+            $disconnected = $this->goApi->disconnectSession($token, 'QR modal closed');
+
+            if (!$disconnected) {
+                Log::warning('Failed to disconnect session in Go API, updating local status anyway', [
+                    'token' => $token,
+                ]);
+            }
+
+            // Update local database status
+            $instance->update([
+                'status' => 'disconnected',
+                'qr_code' => null,
+            ]);
+
+            Log::info('Instance disconnected successfully', [
+                'instance_id' => $instance->id,
+                'go_disconnected' => $disconnected,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Instance disconnected successfully',
+            ]);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Instance not found',
+            ], 404);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to disconnect instance', [
+                'token' => $token,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to disconnect instance: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Disconnect and delete WhatsApp instance
      *
      * DELETE /api/whatsapp/instances/{token}
@@ -192,20 +300,32 @@ class WhatsAppInstanceController extends Controller
     public function destroy(string $token): JsonResponse
     {
         try {
-            $instance = WhatsAppInstance::where('token', $token)->firstOrFail();
+            $instance = WhatsAppInstance::where('instance_key', $token)->firstOrFail();
 
             Log::info('Disconnecting and deleting instance', [
                 'instance_id' => $instance->id,
+                'token' => $token,
                 'status' => $instance->status,
             ]);
 
-            // In a real implementation, this would send a disconnect command to the Go Connection Service
-            // via RabbitMQ before deleting the database record
+            // Disconnect and delete session in Go API
+            $goDeleted = $this->goApi->deleteSession($token);
 
+            if (!$goDeleted) {
+                Log::warning('Failed to delete session in Go API, proceeding with local delete', [
+                    'token' => $token,
+                ]);
+            }
+
+            // Delete from local database
             $instance->delete();
+
+            // Clear cache
+            cache()->forget('whatsapp_instances_list');
 
             Log::info('Instance deleted successfully', [
                 'instance_id' => $instance->id,
+                'go_deleted' => $goDeleted,
             ]);
 
             return response()->json([
@@ -227,7 +347,7 @@ class WhatsAppInstanceController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete instance',
+                'message' => 'Failed to delete instance: ' . $e->getMessage(),
             ], 500);
         }
     }

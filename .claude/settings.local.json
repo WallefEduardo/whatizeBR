@@ -50,7 +50,12 @@
       "Bash(powershell.exe -Command \"cd ''C:\\xampp\\htdocs\\apiGoBR''; go test ./pkg/health/... 2>&1 | Select-String -Pattern ''FAIL|error|undefined'' -Context 2\")",
       "Bash(powershell.exe -Command \"cd ''C:\\xampp\\htdocs\\apiGoBR''; docker ps --format ''table {{.Names}}\\t{{.Status}}\\t{{.Ports}}''\")",
       "Bash(powershell.exe -Command \"cd ''C:\\xampp\\htdocs\\apiGoBR''; go test -v ./tests/integration/... -run ''TestE2E'' 2>&1 | Select-String -Pattern ''RUN|PASS|FAIL|ok ''\")",
-      "Bash(powershell.exe -Command \"cd ''C:\\xampp\\htdocs\\apiGoBR''; go test ./tests/integration/... 2>&1 | Select-String -Pattern ''error|undefined'' -Context 1\")"
+      "Bash(powershell.exe -Command \"cd ''C:\\xampp\\htdocs\\apiGoBR''; go test ./tests/integration/... 2>&1 | Select-String -Pattern ''error|undefined'' -Context 1\")",
+      "Bash(go run:*)",
+      "Bash(./receptive.exe:*)",
+      "Bash(go build:*)",
+      "Bash(php artisan tinker:*)",
+      "Bash(python -m json.tool:*)"
     ]
   }
 }

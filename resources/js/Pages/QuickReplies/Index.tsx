@@ -220,41 +220,40 @@ export default function Index({ quickReplies, filters }: Props) {
                             containerHeight={600}
                             emptyMessage="Nenhuma resposta rápida encontrada"
                         />
+
+                        {/* Pagination */}
+                        {quickReplies.last_page > 1 && (
+                            <div className="px-4 py-3 border-t border-dark-200 dark:border-dark-700 flex items-center justify-between">
+                                <div className="text-sm text-dark-500">
+                                    Mostrando {quickReplies.data.length} de {quickReplies.total}{' '}
+                                    respostas
+                                </div>
+                                <div className="flex gap-2">
+                                    {Array.from({ length: quickReplies.last_page }, (_, i) => i + 1).map(
+                                        (page) => (
+                                            <button
+                                                key={page}
+                                                onClick={() =>
+                                                    router.get('/quick-replies', {
+                                                        page,
+                                                        search,
+                                                    })
+                                                }
+                                                className={`px-3 py-1 rounded text-sm transition-colors ${
+                                                    page === quickReplies.current_page
+                                                        ? 'bg-primary-500 text-white'
+                                                        : 'bg-dark-100 dark:bg-dark-700 text-dark-700 dark:text-dark-300 hover:bg-dark-200 dark:hover:bg-dark-600'
+                                                }`}
+                                            >
+                                                {page}
+                                            </button>
+                                        )
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
-
-                    {/* Pagination */}
-                    {quickReplies.last_page > 1 && (
-                        <div className="px-4 py-3 border-t border-dark-200 dark:border-dark-700 flex items-center justify-between">
-                            <div className="text-sm text-dark-500">
-                                Mostrando {quickReplies.data.length} de {quickReplies.total}{' '}
-                                respostas
-                            </div>
-                            <div className="flex gap-2">
-                                {Array.from({ length: quickReplies.last_page }, (_, i) => i + 1).map(
-                                    (page) => (
-                                        <button
-                                            key={page}
-                                            onClick={() =>
-                                                router.get('/quick-replies', {
-                                                    page,
-                                                    search,
-                                                })
-                                            }
-                                            className={`px-3 py-1 rounded text-sm transition-colors ${
-                                                page === quickReplies.current_page
-                                                    ? 'bg-primary-500 text-white'
-                                                    : 'bg-dark-100 dark:bg-dark-700 text-dark-700 dark:text-dark-300 hover:bg-dark-200 dark:hover:bg-dark-600'
-                                            }`}
-                                        >
-                                            {page}
-                                        </button>
-                                    )
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </div>
             </div>
 
             {/* Modal */}

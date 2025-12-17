@@ -68,7 +68,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     return (
         <ToastContext.Provider value={{ showToast }}>
             {children}
-            <div className="pointer-events-none fixed inset-0 z-50 flex flex-col items-end justify-end gap-2 p-4 sm:p-6">
+            <div className="pointer-events-none fixed inset-0 z-50 flex flex-col items-end justify-start gap-2 p-4 sm:p-6">
                 {toasts.map((toast) => {
                     const Icon = icons[toast.type];
                     return (
@@ -77,7 +77,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                             as={Fragment}
                             show={true}
                             enter="transform ease-out duration-300 transition"
-                            enterFrom="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+                            enterFrom="-translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
                             enterTo="translate-y-0 opacity-100 sm:translate-x-0"
                             leave="transition ease-in duration-100"
                             leaveFrom="opacity-100"

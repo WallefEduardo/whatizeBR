@@ -70,10 +70,14 @@ class WhatsAppWebhookHandler
      */
     private function handleMessageReceived(array $payload): void
     {
-        event(new MessageReceived($payload));
-        Log::info('MessageReceived event dispatched', [
+        Log::info('✅ Webhook message received successfully!', [
             'from' => $payload['from'] ?? null,
+            'message_id' => $payload['message_id'] ?? null,
+            'content' => $payload['content'] ?? null,
         ]);
+
+        // TODO: Create Message model in database and dispatch event
+        // event(new MessageReceived($message));
     }
 
     /**

@@ -10,6 +10,17 @@ if (class_exists(\Dotenv\Dotenv::class)) {
     $dotenv->safeLoad();
 }
 
+// Suppress PHP 8.1+ deprecation warnings from vendor libraries (php-amqplib)
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
+set_error_handler(function ($errno, $errstr, $errfile, $errline) {
+    // Suppress deprecation warnings from vendor directory
+    if ($errno === E_DEPRECATED && str_contains($errfile, 'vendor')) {
+        return true; // Suppress the error
+    }
+    // Let other errors pass through
+    return false;
+});
+
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',

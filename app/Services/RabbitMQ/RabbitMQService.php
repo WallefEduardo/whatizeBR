@@ -14,10 +14,6 @@ class RabbitMQService
 
     public function __construct()
     {
-        // RabbitMQ desabilitado - usando Redis Queue
-        // Descomentar quando RabbitMQ estiver configurado
-        return;
-
         try {
             $this->connection = new AMQPStreamConnection(
                 config('rabbitmq.host'),
@@ -115,11 +111,9 @@ class RabbitMQService
     public function publishTextMessage(string $instanceId, string $toPhone, string $message): void
     {
         $payload = [
-            'instance_id' => $instanceId,
+            'instance_token' => $instanceId,
             'to' => $toPhone,
-            'message' => $message,
-            'type' => 'text',
-            'timestamp' => now()->toIso8601String(),
+            'text' => $message,
         ];
 
         $this->publishWithRoutingKey('send.text', $payload);

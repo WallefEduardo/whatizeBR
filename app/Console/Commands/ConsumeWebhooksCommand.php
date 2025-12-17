@@ -27,24 +27,37 @@ class ConsumeWebhooksCommand extends Command
         $channel = $this->rabbitmq->getChannel();
         $queueName = config('rabbitmq.webhook_queue', 'whatsapp.webhook');
 
-        // Declare queue (idempotent)
-        $channel->queue_declare(
-            $queueName,
-            false,  // passive
-            true,   // durable
-            false,  // exclusive
-            false   // auto_delete
-        );
+        // Declare queue (idempotent) - passive mode to not fail if exists
+        try {
+            $channel->queue_declare(
+                $queueName,
+                true,   // passive - don't create, just check if exists
+                true,   // durable
+                false,  // exclusive
+                false   // auto_delete
+            );
+        } catch (\Exception $e) {
+            // Queue doesn't exist, create it with proper args
+            $channel->queue_declare(
+                $queueName,
+                false,  // passive
+                true,   // durable
+                false,  // exclusive
+                false,  // auto_delete
+                false,  // nowait
+                ['x-message-ttl' => ['I', 86400000]] // 24 hours
+            );
+        }
 
         $this->info("Waiting for messages on queue: {$queueName}");
 
-        $callback = function (AMQPMessage $msg) {
+        $callback = function (AMQPMessage $msg) use ($channel) {
             try {
                 $payload = json_decode($msg->body, true);
 
                 if (!$payload) {
                     $this->error('Invalid JSON payload');
-                    $msg->nack(false, false); // Reject and don't requeue
+                    $channel->basic_nack($msg->delivery_info['delivery_tag'], false, false); // Reject and don't requeue
                     return;
                 }
 
@@ -54,7 +67,7 @@ class ConsumeWebhooksCommand extends Command
                 $this->webhookHandler->handle($payload);
 
                 // Acknowledge message
-                $msg->ack();
+                $channel->basic_ack($msg->delivery_info['delivery_tag']);
 
                 $this->info("Webhook processed successfully");
             } catch (\Exception $e) {
@@ -65,7 +78,7 @@ class ConsumeWebhooksCommand extends Command
                 ]);
 
                 // Reject and requeue for retry
-                $msg->nack(false, true);
+                $channel->basic_nack($msg->delivery_info['delivery_tag'], false, true);
             }
         };
 
@@ -85,8 +98,16 @@ class ConsumeWebhooksCommand extends Command
             $callback
         );
 
-        while ($channel->is_consuming()) {
-            $channel->wait();
+        $this->info('Consumer started. Press Ctrl+C to stop.');
+
+        // Keep consuming messages
+        while ($channel->callbacks) {
+            try {
+                $channel->wait();
+            } catch (\Exception $e) {
+                $this->error("Consumer error: {$e->getMessage()}");
+                break;
+            }
         }
     }
 }

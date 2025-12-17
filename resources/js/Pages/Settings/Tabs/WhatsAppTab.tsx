@@ -6,6 +6,7 @@ import Textarea from '@/Components/UI/Textarea'
 import { Card } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
 import { SettingsData, WhatsAppInstance } from '@/types'
+import InstanceManager from '@/Components/WhatsApp/InstanceManager'
 
 interface WhatsAppTabProps {
     settings: SettingsData
@@ -87,30 +88,7 @@ export default function WhatsAppTab({
                         </h3>
                     </div>
 
-                    <div className="space-y-3">
-                        {instances.length === 0 ? (
-                            <div className="text-center py-8 text-dark-500">
-                                Nenhuma instância conectada
-                            </div>
-                        ) : (
-                            instances.map((instance) => (
-                                <div
-                                    key={instance.id}
-                                    className="flex items-center justify-between p-4 rounded border border-dark-200 dark:border-dark-700 bg-dark-50 dark:bg-dark-900"
-                                >
-                                    <div>
-                                        <h4 className="font-medium text-dark-900 dark:text-dark-50">
-                                            {instance.name}
-                                        </h4>
-                                        <p className="text-sm text-dark-500">
-                                            {instance.phone || 'Sem número'}
-                                        </p>
-                                    </div>
-                                    {getStatusBadge(instance.status)}
-                                </div>
-                            ))
-                        )}
-                    </div>
+                    <InstanceManager instances={instances} />
                 </div>
             </Card>
 
